@@ -46,9 +46,9 @@ fun reverse_go :: "'a lst \<Rightarrow> 'a lst \<Rightarrow> 'a lst" where
 fun reverse :: "'a lst \<Rightarrow> 'a lst" where
 "reverse xs = reverse_go xs Nil"
 
-fun rev :: "'a lst \<Rightarrow> 'a lst" where
-"rev Nil         = Nil" |
-"rev (Cons x xs) = app (rev xs) (Cons x Nil)"
+fun rev' :: "'a lst \<Rightarrow> 'a lst" where
+"rev' Nil         = Nil" |
+"rev' (Cons x xs) = app (rev' xs) (Cons x Nil)"
 
 (* The "value" command evaluates a term *)
 value "add 1 (add 2 0)"
@@ -68,14 +68,14 @@ apply(induction xs)
 apply(auto)
 done
 
-lemma rev_app [simp] : "rev (app xs ys) = app (rev ys) (rev xs)"
+lemma rev'_app [simp] : "rev' (app xs ys) = app (rev' ys) (rev' xs)"
 apply(induction xs)
 apply(auto)
 done
 
 (* Define new theorem (can be a lemma, all the same). The [simp] annotation means that it will
    be automatically applied when using simplification to prove new theorems. *)
-theorem rev_rev [simp] : "rev (rev xs) = xs"
+theorem rev'_rev' [simp] : "rev' (rev' xs) = xs"
 apply(induction xs)
 apply(simp)
 apply(simp)
@@ -108,7 +108,7 @@ fun head :: "'a lst \<Rightarrow> 'a" where
 
 value "head Nil"
 
-(* Exercises, Section 2 *)
+(* Exercises 2.2 *)
 
 (* 2.1 *)
 
@@ -281,14 +281,139 @@ definition sq :: "nat \<Rightarrow> nat" where
 "sq x = x + x"
 
 (* Can also define abbreviations, which are similar to definitions but are expanded upon parsing
-   and forded back on prettyprinting
+   and folded back on prettyprinting.
  *)
+
+(* NB to enter \<equiv> either leave == in ascii, enter == and complete or enter \<equiv> and complete *)
 
 abbreviation sq' :: "nat \<Rightarrow> nat" where
 "sq' x \<equiv> x * x"
 
+(* Recursive functions are defined with fun keyword. They must be total and must always
+   terminate.
 
+   Every function defines it's own customized induction rule, e.g.
+ *)
 
+fun div2 :: "nat \<Rightarrow> nat" where
+"div2 0             = 0" |
+"div2 (Suc 0)       = 0" |
+"div2 (Suc (Suc n)) = Suc (div2 n)"
 
+lemma div2_is_div : "div2 n = n div 2"
+(* apply customized induction rule *)
+apply(induction n rule: div2.induct)
+apply(auto)
+done
+
+(* Customized induction rule is more convenient for proving properties of non-trivial functions,
+   where there's more than one equation for each constructor of input
+ *)
+
+(* If function takes several arguments then induction rule is applied like this:
+   apply(induction x1, x2, ..., xN rule: f.induct
+  *)
+
+(* Exercises 2.3 *)
+
+(* 2.6 *)
+
+datatype 'a tree =
+    Leaf
+  | Branch "'a" "'a tree" "'a tree"
+
+value "listsum [1, 2, 3] :: int"
+
+fun contents :: "'a tree \<Rightarrow> 'a list" where
+"contents Leaf = []" |
+"contents (Branch x left right) = contents left @ x # contents right"
+
+fun treesum :: "nat tree \<Rightarrow> nat" where
+"treesum Leaf = 0" |
+"treesum (Branch x left right) = treesum left + treesum right + x"
+
+theorem treesum_is_listsum : "treesum t = listsum (contents t)"
+apply(induction t)
+apply(auto)
+done
+
+(* Try to find out which theorems about addition were used to prove treesum_is_listsum *)
+(*
+fun my_add :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
+"my_add 0       m = m" |
+"my_add (Suc n) m = Suc (my_add n m)"
+
+fun my_listsum :: "nat list \<Rightarrow> nat" where
+"my_listsum []       = 0" |
+"my_listsum (x # xs) = my_add x (my_listsum xs)"
+
+fun my_treesum :: "nat tree \<Rightarrow> nat" where
+"my_treesum Leaf = 0" |
+"my_treesum (Branch x left right) = my_add x (my_add (my_treesum left) (my_treesum right))"
+
+lemma my_listsum_distributes_over_append [simp] : "my_listsum (xs @ ys) = my_add (my_listsum xs) (my_listsum ys)"
+apply(induction xs)
+apply(auto)
+apply(induction ys)
+apply(auto)
+done
+
+theorem my_treesum_is_my_listsum : "my_treesum t = my_listsum (contents t)"
+apply(induction t)
+apply(auto)
+done
+
+*)
+
+(* 2.7 *)
+
+datatype 'a tree2 =
+    Leaf 'a
+  | Branch 'a "'a tree2" "'a tree2"
+
+fun mirror2 :: "'a tree2 \<Rightarrow> 'a tree2" where
+"mirror2 (Leaf x)              = Leaf x" |
+"mirror2 (Branch x left right) = Branch x (mirror2 right) (mirror2 left)"
+
+(* NB Function is an involution if it is its own inverse, i.e. it cancels itself *)
+lemma mirror2_is_involution : "mirror2 (mirror2 t) = t"
+apply(induction t)
+apply(auto)
+done
+
+fun pre_order :: "'a tree2 \<Rightarrow> 'a list" where
+"pre_order (Leaf x)              = [x]" |
+"pre_order (Branch x left right) = x # pre_order left @ pre_order right"
+
+fun post_order :: "'a tree2 \<Rightarrow> 'a list" where
+"post_order (Leaf x)              = [x]" |
+"post_order (Branch x left right) = post_order left @ post_order right @ [x]"
+
+value "rev [1, 2, 3] :: int list"
+
+theorem pre_post_order : "pre_order (mirror2 t) = rev (post_order t)"
+apply(induction t)
+apply(auto)
+done
+
+(* 2.8 *)
+
+fun intersperse :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"intersperse x []       = []" |
+"intersperse x (y # ys) = y # concat (map (\<lambda> z. [x, z]) ys)"
+
+lemma map_over_concat [simp] : "map f (concat xs) = concat (map (map f) xs)"
+apply(induction xs)
+apply(auto)
+done
+
+lemma map_f_comp_list_valued_lambda [simp] : "map f \<circ> (\<lambda>y. [x, y]) = (\<lambda>y. [f x, y]) \<circ> f"
+apply(auto)
+done
+
+theorem intersperse_distributes_over_map : "map f (intersperse x xs) = intersperse (f x) (map f xs)"
+apply(induction xs)
+apply(auto)
+done
 
 end
