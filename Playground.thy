@@ -3,7 +3,7 @@ imports Main
 begin
 
 (*
-datatype boolean = True | False 
+datatype boolean = True | False
 
 fun conjuction :: "boolean \<Rightarrow> boolean \<Rightarrow> boolean" where
 "conjuction True True = True" |
@@ -42,7 +42,7 @@ fun app :: "'a lst \<Rightarrow> 'a lst \<Rightarrow> 'a lst" where
 fun reverse_go :: "'a lst \<Rightarrow> 'a lst \<Rightarrow> 'a lst" where
 "reverse_go Nil         ys = ys" |
 "reverse_go (Cons x xs) ys = reverse_go xs (Cons x ys)"
-  
+
 fun reverse :: "'a lst \<Rightarrow> 'a lst" where
 "reverse xs = reverse_go xs Nil"
 
@@ -88,7 +88,7 @@ value "rev (rev xs)"
    x # xs            - cons x onto xs
    [x1, x2, ..., xn] = x1 # x2 # ... # xn # []
    xs @ ys           - append xs and ys
-   
+
    List library:
    length :: 'a list \<Rightarrow> nat
    map    :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list
@@ -98,7 +98,7 @@ value "rev (rev xs)"
 
 (* HOL is logic of total functions, the head function (as well as hd) has some result on
    empty list, but we don'n know what it is.
-   
+
    Thus (head []) is underdefined rather than undefined. This means that head [] will not be
    simplified (reduced).
    *)
@@ -247,7 +247,7 @@ done
 
 (* 2.3 Type and Function Definitions *)
 
-type_synonym string = "char  list"
+type_synonym string = "char list"
 
 datatype ('a, 'b) three =
     One "'a"
@@ -414,6 +414,184 @@ done
 theorem intersperse_distributes_over_map : "map f (intersperse x xs) = intersperse (f x) (map f xs)"
 apply(induction xs)
 apply(auto)
+done
+
+
+fun itrev_helper :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"itrev_helper []       ys = ys" |
+"itrev_helper (x # xs) ys = itrev_helper xs (x # ys)"
+
+fun itrev :: "'a list \<Rightarrow> 'a list" where
+(*definition itrev :: "'a list \<Rightarrow> 'a list" where*)
+"itrev xs = itrev_helper xs []"
+
+(* Cannot prove weaker statement, "itrev_helper xs [] = rev xs", by induction - IH would be too
+   weak to prove the step.
+   
+   Can, and sometimes must, further strengthen IH by universally quantifying over free variables
+   that we're not inducting over.
+ *)
+lemma itrev_helper_reverses [simp] : "itrev_helper xs ys = rev xs @ ys"
+apply(induction xs arbitrary: ys)
+apply(auto)
+done
+
+theorem itrev_reverses : "itrev xs = rev xs"
+apply(auto)
+done
+
+(* Exercise 2.9 *)
+
+fun itadd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
+"itadd 0        m = m" |
+"itadd (Suc n) m = itadd n (Suc m)"
+
+theorem itadd_sums : "itadd n m = add n m"
+apply(induction n arbitrary: m)
+apply(auto)
+done
+
+(* 2.5 Simplification rules *)
+
+(* Definitions do not automatically become simplification rules.
+   OTOH functions and datatypes automatically produce some rules.
+
+   Functions produce a rule for every equation.
+
+   Datatypes produce injectivity and distinctness (of constructors) rules.
+
+   NB only real simplifications should become automatic rules - e.g.
+   distributivity should remain manual.
+   
+   Simplification rules can be conditional, e.g. p(n) \<Rightarrow> f(n) = g(n).
+   This way f(n) will be substituted by g(n) only when p(n) is provable.
+   
+   Right-hand side should always simpler than left-hand side to ensure termination.
+   Termination check is undecidable and cannot be performed automatically.
+   
+   For conditional rules the precondition is proved first, therefore it must be simpler
+   than rhs.
+ *)
+
+(* Definitions are intended for abstract concepts, but can be expanded with
+
+     apply(simp add: definition_name_def)
+
+   for some definition definition_name.
+   
+   Simplification can be temporarily undone by
+
+     apply(simp del: rule_name)
+ *)
+
+(* Exercise 2.10 *)
+
+datatype tree0 = Leaf0 | Branch0 tree0 tree0
+
+fun tree0_size :: "tree0 \<Rightarrow> nat" where
+"tree0_size Leaf0                = 1" |
+"tree0_size (Branch0 left right) = 1 + tree0_size left + tree0_size right"
+
+fun explode :: "nat \<Rightarrow> tree0 \<Rightarrow> tree0" where
+"explode 0       t = t" |
+"explode (Suc n) t = explode n (Branch0 t t)"
+
+theorem exploded_size : "tree0_size (explode n t) = 2^n * (tree0_size t + 1) - 1"
+apply(induction n arbitrary: t)
+apply(auto)
+apply(simp add: algebra_simps) (* Standard arithmetic operations properties *)
+done
+
+(* Exercise 2.11 *)
+
+datatype exp =
+    Var
+  | Const int
+  | Add exp exp
+  | Mul exp exp
+
+fun eval :: "exp \<Rightarrow> int \<Rightarrow> int" where
+"eval Var       v = v" |
+"eval (Const n) _ = n" |
+"eval (Add x y) v = eval x v + eval y v" |
+"eval (Mul x y) v = eval x v * eval y v"
+
+(* List of coefficients *)
+type_synonym polynomial = "int list"
+
+fun evalp_helper :: "polynomial \<Rightarrow> int \<Rightarrow> nat \<Rightarrow> int" where
+"evalp_helper []       _ _ = 0" |
+"evalp_helper (c # cs) v n = c * v^n + evalp_helper cs v (n + 1)"
+
+fun evalp :: "polynomial \<Rightarrow> int \<Rightarrow> int" where
+"evalp cs v = evalp_helper cs v 0"
+
+fun poly_add :: "polynomial \<Rightarrow> polynomial \<Rightarrow> polynomial" where
+"poly_add []       []       = []"     |
+"poly_add (x # xs) []       = x # xs" |
+"poly_add []       (y # ys) = y # ys" |
+"poly_add (x # xs) (y # ys) = (x + y) # poly_add xs ys"
+
+fun poly_shift :: "nat \<Rightarrow> polynomial \<Rightarrow> polynomial" where
+"poly_shift 0       xs = xs" |
+"poly_shift (Suc n) xs = poly_shift n (0 # xs)"
+
+fun poly_scale :: "int \<Rightarrow> polynomial \<Rightarrow> polynomial" where
+"poly_scale c xs = map (op * c) xs"
+
+fun poly_mul :: "polynomial \<Rightarrow> nat \<Rightarrow> polynomial \<Rightarrow> polynomial" where
+"poly_mul []       _ _  = []" |
+"poly_mul (x # xs) n ys = poly_add (poly_scale x (poly_shift n ys)) (poly_mul xs (Suc n) ys)"
+(*"poly_mul (x # xs) ys = poly_add (poly_scale x ys) (poly_mul xs (poly_shift ys))"*)
+
+
+lemma eval_shifted_poly [simp] : "evalp_helper (poly_shift n xs) v m = evalp_helper xs v (n + m)"
+apply(induction n xs rule: poly_shift.induct)
+apply(auto)
+done
+
+fun coeffs :: "exp \<Rightarrow> polynomial" where
+"coeffs Var       = [0, 1]"                         |
+"coeffs (Const n) = [n]"                            |
+"coeffs (Add x y) = poly_add (coeffs x) (coeffs y)" |
+"coeffs (Mul x y) = poly_mul (coeffs x) 0 (coeffs y)"
+
+theorem poly_add_sums [simp] : "evalp_helper (poly_add xs ys) v n = evalp_helper xs v n + evalp_helper ys v n"
+apply(induction xs ys arbitrary: n rule: poly_add.induct)
+apply(auto simp add: algebra_simps)
+done
+
+lemma poly_scale_scales [simp] : "evalp_helper (map (op * c) xs) v n = c * evalp_helper xs v n"
+apply(induction xs arbitrary: n)
+apply(auto simp add: algebra_simps)
+done
+
+(*
+value "poly_mul [-1] 0 [-1]"
+value "let xs = [-1]; ys = xs; zs = poly_mul xs ys; v = -2; n = 1 in (zs, evalp_helper zs v n, evalp_helper xs v n, evalp_helper ys v n, evalp_helper xs v n * evalp_helper ys v n)"
+*)
+
+lemma evalp_helper_nonzero_power : "evalp_helper xs v (Suc n) = v * evalp_helper xs v n"
+apply(induction xs arbitrary: n)
+apply(auto simp add: algebra_simps)
+done
+
+lemma evalp_helper_composite_power : "evalp_helper xs v (m + n) = v^m * evalp_helper xs v n"
+apply(induction m (*arbitrary: n*))
+apply(auto simp add: evalp_helper_nonzero_power)
+done
+
+theorem poly_mul_multiplies [simp] : "evalp_helper (poly_mul xs m ys) v n = evalp_helper xs v m * evalp_helper ys v n"
+apply(induction xs arbitrary: m)
+apply(simp)
+apply(simp)
+apply(simp add: algebra_simps evalp_helper_composite_power)
+done
+
+theorem poly_conversion_preserves_value : "evalp (coeffs exp) v = eval exp v"
+apply(induction exp arbitrary: v)
+apply(auto)
+(*apply(simp add: algebra_simps)*)
 done
 
 end
