@@ -292,7 +292,7 @@ abbreviation sq' :: "nat \<Rightarrow> nat" where
 (* Recursive functions are defined with fun keyword. They must be total and must always
    terminate.
 
-   Every function defines it's own customized induction rule, e.g.
+   Every function defines it's own customized induction rule, e.g. see div2 below
  *)
 
 fun div2 :: "nat \<Rightarrow> nat" where
