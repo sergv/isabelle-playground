@@ -94,28 +94,43 @@ value "let (x, y) = (1, 2 :: int) in x + y"
 
 datatype arith_expr_simplified =
     Constant int
-  | Term arith_expr int
+  | VanillaTerm arith_expr
+  | Term arith_expr int (* integer is always nonzero *) 
 
 fun unsimplify :: "arith_expr_simplified \<Rightarrow> arith_expr" where
-"unsimplify (Constant n) = N n" |
-"unsimplify (Term e n)   = Plus e (N n)" (*(if n = 0 then e else Plus e (N n))"*)
+"unsimplify (Constant n)    = N n" |
+"unsimplify (VanillaTerm e) = e"   |
+"unsimplify (Term e n)      = Plus e (N n)"
+
+fun addConstant :: "int \<Rightarrow> arith_expr_simplified \<Rightarrow> arith_expr_simplified" where
+"addConstant n (Constant m)    = Constant (n + m)"                            |
+"addConstant n (VanillaTerm e) = (if n = 0 then VanillaTerm e else Term e n)" |
+"addConstant n (Term e m)      = Term e (n + m)"
 
 fun full_asimp_helper :: "arith_expr \<Rightarrow> arith_expr_simplified" where
-"full_asimp_helper (N n)      = Constant n" |
-"full_asimp_helper (V v)      = Term (V v) 0" |
+"full_asimp_helper (N n)      = Constant n"        |
+"full_asimp_helper (V v)      = VanillaTerm (V v)" |
 "full_asimp_helper (Plus x y) =
  (case (full_asimp_helper x, full_asimp_helper y) of
-   (Constant n, Constant m) \<Rightarrow> Constant (n + m) |
-   (Constant n, Term e m)   \<Rightarrow> Term e (n + m)   |
-   (Term e n,   Constant m) \<Rightarrow> Term e (n + m)   |
-   (Term e n,   Term e' m)  \<Rightarrow> Term (Plus e e') (n + m))"
+   (Constant n,    e)              \<Rightarrow> addConstant n e         |
+   (e,             Constant m)     \<Rightarrow> addConstant m e         |
+   (VanillaTerm e, VanillaTerm e') \<Rightarrow> VanillaTerm (Plus e e') |
+   (VanillaTerm e, Term e' m)      \<Rightarrow> Term (Plus e e') m      |
+   (Term e n,      VanillaTerm e') \<Rightarrow> Term (Plus e e') n      |
+   (Term e n,      Term e' m)      \<Rightarrow> Term (Plus e e') (n + m))"
 
 fun full_asimp :: "arith_expr \<Rightarrow> arith_expr" where
 "full_asimp e = unsimplify (full_asimp_helper e)"
 
+lemma addConstant_preserves_semantics : 
+  "arith_expr_value (unsimplify (addConstant n e)) s = n + arith_expr_value (unsimplify e) s"
+apply(induction e)
+apply(auto split: arith_expr_simplified.split)
+done
+
 theorem full_asimp_preserves_semantics : "arith_expr_value (full_asimp e) s = arith_expr_value e s"
 apply(induction e)
-apply(auto simp add: algebra_simps split: arith_expr_simplified.split)
+apply(auto split: arith_expr_simplified.split simp add: addConstant_preserves_semantics)
 (* apply(auto simp add: split_def Let_def split: option.split) (* split_def is needed to expand cases over tuples *) *)
 done
 
