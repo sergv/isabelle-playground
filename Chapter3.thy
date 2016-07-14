@@ -95,6 +95,7 @@ value "let (x, y) = (1, 2 :: int) in x + y"
 datatype arith_expr_simplified =
     Constant int
   | VanillaTerm arith_expr
+  (* Term plus some constant *)
   | Term arith_expr int (* integer is always nonzero *) 
 
 fun unsimplify :: "arith_expr_simplified \<Rightarrow> arith_expr" where
