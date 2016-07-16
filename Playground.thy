@@ -307,7 +307,7 @@ apply(auto)
 done
 
 (* Customized induction rule is more convenient for proving properties of non-trivial functions,
-   where there's more than one equation for each constructor of input
+   where there's more than one equation for each constructor of input.
  *)
 
 (* If function takes several arguments then induction rule is applied like this:
