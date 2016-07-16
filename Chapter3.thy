@@ -145,4 +145,21 @@ apply(auto split: aexp_simplified.split simp add: addConstant_preserves_semantic
 (* apply(auto simp add: split_def Let_def split: option.split) (* split_def is needed to expand cases over tuples *) *)
 done
 
+(* 3.3 *)
+
+fun subst :: "var_name \<Rightarrow> aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
+"subst _ _ (N n)       = N n"                          |
+"subst v x (V v')      = (if v = v' then x else V v')" |
+"subst v x (Plus e e') = Plus (subst v x e) (subst v x e')"
+
+lemma substitution_lemma : "aval (subst v x e) s = aval e (s (v := aval x s))"
+apply(induction e)
+apply(auto)
+done
+
+lemma substitute_equals_preserves_semantics : "aval x s = aval y s \<Longrightarrow> aval (subst v x e) s = aval (subst v y e) s"
+apply(induction e)
+apply(auto)
+done
+
 end
