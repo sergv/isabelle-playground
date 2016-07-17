@@ -96,7 +96,7 @@ datatype aexp_simplified =
     Constant int
   | VanillaTerm aexp
   (* Term plus some constant *)
-  | Term aexp int (* integer is always nonzero *) 
+  | Term aexp int (* integer is always nonzero *)
 
 fun unsimplify :: "aexp_simplified \<Rightarrow> aexp" where
 "unsimplify (Constant n)    = N n" |
@@ -129,11 +129,11 @@ fun full_asimp_helper :: "aexp \<Rightarrow> aexp_simplified" where
    (VanillaTerm e, Term e' m)      \<Rightarrow> Term (Plus e e') m      |
    (Term e n,      VanillaTerm e') \<Rightarrow> Term (Plus e e') n      |
    (Term e n,      Term e' m)      \<Rightarrow> Term (Plus e e') (n + m))"
-   
+
 fun full_asimp :: "aexp \<Rightarrow> aexp" where
 "full_asimp x = (unsimplify \<circ> full_asimp_helper) x" (* Enter composition via \circ *)
 
-lemma addConstant_preserves_semantics : 
+lemma addConstant_preserves_semantics :
   "aval (unsimplify (addConstant n e)) s = n + aval (unsimplify e) s"
 apply(induction e)
 apply(auto split: aexp_simplified.split)
@@ -161,5 +161,48 @@ lemma substitute_equals_preserves_semantics : "aval x s = aval y s \<Longrightar
 apply(induction e)
 apply(auto)
 done
+
+(* 3.5 *)
+
+datatype aexp\<^sub>2 =
+    N int
+  | V var_name
+  | Plus aexp\<^sub>2 aexp\<^sub>2
+  | Div aexp\<^sub>2 aexp\<^sub>2
+  | PostIncrement var_name
+
+fun liftOpt :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a option \<Rightarrow> 'b option \<Rightarrow> 'c option" where
+"liftOpt _ None     _        = None" |
+"liftOpt _ _        None     = None" |
+"liftOpt f (Some x) (Some y) = Some (f x y)"
+
+fun aval\<^sub>2 :: "aexp\<^sub>2 \<Rightarrow> state \<Rightarrow> val option \<times> state" where
+"aval\<^sub>2 (N n)       s  = (Some n, s)"   |
+"aval\<^sub>2 (V v)       s  = (Some (s v), s)" |
+"aval\<^sub>2 (Plus e\<^sub>1 e\<^sub>2) s\<^sub>1 =
+ (let (v\<^sub>1, s\<^sub>2) = aval\<^sub>2 e\<^sub>1 s\<^sub>1;
+      (v\<^sub>2, s\<^sub>3) = aval\<^sub>2 e\<^sub>2 s\<^sub>2 in
+  (liftOpt (op +) v\<^sub>1 v\<^sub>2, s\<^sub>3))" |
+"aval\<^sub>2 (Div e\<^sub>1 e\<^sub>2) s\<^sub>1 =
+ (let (v\<^sub>1, s\<^sub>2) = aval\<^sub>2 e\<^sub>1 s\<^sub>1;
+      (v\<^sub>2, s\<^sub>3) = aval\<^sub>2 e\<^sub>2 s\<^sub>2;
+      v        = if v\<^sub>2 = Some 0
+                 then None
+                 else liftOpt (op div) v\<^sub>1 v\<^sub>2 
+  in (v, s\<^sub>3))" |
+"aval\<^sub>2 (PostIncrement v) s =
+ (let v' = s v in
+  (Some v', s (v := v' + 1)))"
+
+value "
+aval\<^sub>2 
+  (Plus 
+    (PostIncrement (VarName ''x''))
+    (Plus
+      (PostIncrement (VarName ''x''))
+      (Div 
+        (PostIncrement (VarName ''x''))
+        (N 2))))
+  (\<lambda> _ \<Rightarrow> 0)"
 
 end
