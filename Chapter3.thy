@@ -165,9 +165,9 @@ done
 (* 3.5 *)
 
 datatype aexp\<^sub>2 =
-    N int
-  | V var_name
-  | Plus aexp\<^sub>2 aexp\<^sub>2
+    N\<^sub>2 int
+  | V\<^sub>2 var_name
+  | Plus\<^sub>2 aexp\<^sub>2 aexp\<^sub>2
   | Div aexp\<^sub>2 aexp\<^sub>2
   | PostIncrement var_name
 
@@ -177,9 +177,9 @@ fun liftOpt :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a option \
 "liftOpt f (Some x) (Some y) = Some (f x y)"
 
 fun aval\<^sub>2 :: "aexp\<^sub>2 \<Rightarrow> state \<Rightarrow> val option \<times> state" where
-"aval\<^sub>2 (N n)       s  = (Some n, s)"   |
-"aval\<^sub>2 (V v)       s  = (Some (s v), s)" |
-"aval\<^sub>2 (Plus e\<^sub>1 e\<^sub>2) s\<^sub>1 =
+"aval\<^sub>2 (N\<^sub>2 n)       s  = (Some n, s)"   |
+"aval\<^sub>2 (V\<^sub>2 v)       s  = (Some (s v), s)" |
+"aval\<^sub>2 (Plus\<^sub>2 e\<^sub>1 e\<^sub>2) s\<^sub>1 =
  (let (v\<^sub>1, s\<^sub>2) = aval\<^sub>2 e\<^sub>1 s\<^sub>1;
       (v\<^sub>2, s\<^sub>3) = aval\<^sub>2 e\<^sub>2 s\<^sub>2 in
   (liftOpt (op +) v\<^sub>1 v\<^sub>2, s\<^sub>3))" |
@@ -188,21 +188,47 @@ fun aval\<^sub>2 :: "aexp\<^sub>2 \<Rightarrow> state \<Rightarrow> val option \
       (v\<^sub>2, s\<^sub>3) = aval\<^sub>2 e\<^sub>2 s\<^sub>2;
       v        = if v\<^sub>2 = Some 0
                  then None
-                 else liftOpt (op div) v\<^sub>1 v\<^sub>2 
+                 else liftOpt (op div) v\<^sub>1 v\<^sub>2
   in (v, s\<^sub>3))" |
 "aval\<^sub>2 (PostIncrement v) s =
  (let v' = s v in
   (Some v', s (v := v' + 1)))"
 
 value "
-aval\<^sub>2 
-  (Plus 
+aval\<^sub>2
+  (Plus\<^sub>2
     (PostIncrement (VarName ''x''))
-    (Plus
+    (Plus\<^sub>2
       (PostIncrement (VarName ''x''))
-      (Div 
+      (Div
         (PostIncrement (VarName ''x''))
-        (N 2))))
+        (N\<^sub>2 2))))
   (\<lambda> _ \<Rightarrow> 0)"
+
+(* 3.6 *)
+
+datatype lexp =
+    Nl int
+  | Vl var_name
+  | Plusl lexp lexp
+  | LET var_name lexp lexp
+
+fun lval :: "lexp \<Rightarrow> state \<Rightarrow> val" where
+"lval (Nl n)      _ = n"                   |
+"lval (Vl v)      s = s v"                 |
+"lval (Plusl x y) s = lval x s + lval y s" |
+"lval (LET v x y) s = lval y (s (v := lval x s))"
+
+fun inline :: "lexp \<Rightarrow> aexp" where
+"inline (Nl n)      = N n"                        |
+"inline (Vl v)      = V v"                        |
+"inline (Plusl x y) = Plus (inline x) (inline y)" |
+"inline (LET v x y) = subst v (inline x) (inline y)"
+
+lemma inline_preserves_semantics : "lval e s = aval (inline e) s"
+apply(induction e arbitrary: s)
+apply(auto)
+apply(simp add: substitution_lemma)
+done
 
 end
