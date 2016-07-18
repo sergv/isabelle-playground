@@ -310,4 +310,44 @@ lemma le_is_correct : "bval (Le e\<^sub>1 e\<^sub>2) s = (aval e\<^sub>1 s \<le>
 apply(auto)
 done
 
+(* Exercise 3.8 *)
+
+datatype ifexp =
+    Bc2 bool
+  | If ifexp ifexp ifexp
+  | Less2 aexp aexp
+
+fun ifval :: "ifexp \<Rightarrow> state \<Rightarrow> bool" where
+"ifval (Bc2 b)     _ = b"                                            |
+"ifval (If c t f)  s = (if ifval c s then ifval t s else ifval f s)" |
+"ifval (Less2 x y) s = (aval x s < aval y s)"
+
+fun b2ifexp :: "bexp \<Rightarrow> ifexp" where
+"b2ifexp (Bc b)     = Bc2 b"                                  |
+"b2ifexp (Not x)    = If (b2ifexp x) (Bc2 False) (Bc2 True)"  |
+"b2ifexp (And x y)  = If (b2ifexp x) (b2ifexp y) (Bc2 False)" |
+"b2ifexp (Less x y) = Less2 x y"
+
+lemma b2ifexp_preserves_semantics : "ifval (b2ifexp e) s = bval e s"
+apply(induction e)
+apply(auto)
+done
+
+fun or :: "bexp \<Rightarrow> bexp \<Rightarrow> bexp" where
+"or x y = Not (And (Not x) (Not y))"
+
+lemma or_is_correct : "bval (or e\<^sub>1 e\<^sub>2) s = (bval e\<^sub>1 s \<or> bval e\<^sub>2 s)"
+apply(auto)
+done
+
+fun if2bexp :: "ifexp \<Rightarrow> bexp" where
+"if2bexp (Bc2 b)     = Bc b"                                                                 |
+"if2bexp (If c t f)  = or (And (if2bexp c) (if2bexp t)) (And (Not (if2bexp c)) (if2bexp f))" |
+"if2bexp (Less2 x y) = Less x y"
+
+lemma if2bexp_preserves_semantics : "bval (if2bexp e) s = ifval e s"
+apply(induction e)
+apply(auto)
+done 
+
 end
