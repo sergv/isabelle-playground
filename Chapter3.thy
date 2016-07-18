@@ -2,7 +2,7 @@ theory Chapter3
 imports Main HOL.Fun
 begin
 
-(* Section 3.1 *)
+(** Section 3.1 Arithmetic expressions **)
 
 datatype var_name = VarName string
 
@@ -67,7 +67,7 @@ fun asimp :: "aexp \<Rightarrow> aexp" where
 "asimp (V x)      = V x" |
 "asimp (Plus x y) = plus x y"
 
-lemma "aval (asimp e) s = aval e s"
+lemma asimp_preserves_semantics : "aval (asimp e) s = aval e s"
 apply(induction e)
 apply(auto simp add: plus_adds)
 done
@@ -229,6 +229,69 @@ lemma inline_preserves_semantics : "lval e s = aval (inline e) s"
 apply(induction e arbitrary: s)
 apply(auto)
 apply(simp add: substitution_lemma)
+done
+
+(** Section 3.2 Boolean expressions **)
+
+datatype bexp =
+    Bc bool
+  | Not bexp
+  | And bexp bexp
+  | Less aexp aexp
+
+fun bval :: "bexp \<Rightarrow> state \<Rightarrow> bool" where
+"bval (Bc x)     _ = x" |
+"bval (Not e)    s = (\<not> bval e s)" |
+"bval (And x y)  s = (bval x s \<and> bval y s)" |
+"bval (Less x y) s = (aval x s < aval y s)"
+
+fun not :: "bexp \<Rightarrow> bexp" where
+"not (Bc b)     = Bc (\<not> b)"      |
+"not (Not e)    = e"             |
+"not (And x y)  = Not (And x y)" |
+"not (Less x y) = Not (Less x y)"
+
+lemma not_preserves_semantics : "bval (not e) s = (\<not> bval e s)"
+apply(induction e)
+apply(auto)
+done
+
+fun "and" :: "bexp \<Rightarrow> bexp \<Rightarrow> bexp" where
+"and x          (Bc True)  = x"        |
+"and (Bc True)  y          = y"        |
+"and _          (Bc False) = Bc False" |
+"and (Bc False) _          = Bc False" |
+"and x          y          = And x y"
+
+value "False = False"
+value "bval (and (Bc True) (Bc False)) undef_state"
+value "bval (Bc True) undef_state \<and> bval (Bc False) undef_state"
+value "bval (and (Bc True) (Bc False)) undef_state = (bval (Bc True) undef_state \<and> bval (Bc False) undef_state)"
+
+lemma and_preserves_semantics : "bval (and e\<^sub>1 e\<^sub>2) s = (bval e\<^sub>1 s \<and> bval e\<^sub>2 s)"
+apply(induction e\<^sub>1 e\<^sub>2 rule: and.induct)
+apply(auto)
+done
+
+fun less :: "aexp \<Rightarrow> aexp \<Rightarrow> bexp" where
+"less (N x) (N y) = Bc (x < y)" |
+"less x     y     = Less x y"
+
+lemma less_preserves_semantics : "bval (less e\<^sub>1 e\<^sub>2) s = (aval e\<^sub>1 s < aval e\<^sub>2 s)"
+apply(induction e\<^sub>1 e\<^sub>2 rule: less.induct)
+apply(auto)
+done
+
+fun bsimp :: "bexp \<Rightarrow> bexp" where
+"bsimp (Bc x)     = Bc x"    |
+"bsimp (Not e)    = not e"   |
+"bsimp (And x y)  = and x y" |
+"bsimp (Less x y) = less (asimp x) (asimp y)"
+
+lemma bsimp_preserves_semantics : "bval (bsimp e) s = bval e s"
+apply(induction e)
+apply(auto simp add: not_preserves_semantics and_preserves_semantics)
+apply(auto simp add: less_preserves_semantics asimp_preserves_semantics)
 done
 
 end
