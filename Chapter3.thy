@@ -145,7 +145,7 @@ apply(auto split: aexp_simplified.split simp add: addConstant_preserves_semantic
 (* apply(auto simp add: split_def Let_def split: option.split) (* split_def is needed to expand cases over tuples *) *)
 done
 
-(* 3.3 *)
+(* Exercise 3.3 *)
 
 fun subst :: "var_name \<Rightarrow> aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
 "subst _ _ (N n)       = N n"                          |
@@ -162,7 +162,7 @@ apply(induction e)
 apply(auto)
 done
 
-(* 3.5 *)
+(* Exercise 3.5 *)
 
 datatype aexp\<^sub>2 =
     N\<^sub>2 int
@@ -205,7 +205,7 @@ aval\<^sub>2
         (N\<^sub>2 2))))
   (\<lambda> _ \<Rightarrow> 0)"
 
-(* 3.6 *)
+(* Exercise 3.6 *)
 
 datatype lexp =
     Nl int
