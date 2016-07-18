@@ -294,4 +294,20 @@ apply(auto simp add: not_preserves_semantics and_preserves_semantics)
 apply(auto simp add: less_preserves_semantics asimp_preserves_semantics)
 done
 
+(* Exercise 3.7 *)
+
+fun Eq :: "aexp \<Rightarrow> aexp \<Rightarrow> bexp" where
+"Eq x y = And (Not (Less x y)) (Not (Less y x))"
+
+fun Le :: "aexp \<Rightarrow> aexp \<Rightarrow> bexp" where
+"Le x y = Not (Less y x)"
+
+lemma eq_is_correct : "bval (Eq e\<^sub>1 e\<^sub>2) s = (aval e\<^sub>1 s = aval e\<^sub>2 s)"
+apply(auto)
+done
+
+lemma le_is_correct : "bval (Le e\<^sub>1 e\<^sub>2) s = (aval e\<^sub>1 s \<le> aval e\<^sub>2 s)"
+apply(auto)
+done
+
 end
