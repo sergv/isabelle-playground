@@ -350,4 +350,141 @@ apply(induction e)
 apply(auto)
 done 
 
+(* Exercise 3.9 *)
+
+datatype pbexp =
+    VAR var_name
+  | NOT pbexp
+  | AND pbexp pbexp
+  | OR pbexp pbexp
+
+fun pbval :: "pbexp \<Rightarrow> (var_name \<Rightarrow> bool) \<Rightarrow> bool" where
+"pbval (VAR v)    s = s v"                       |
+"pbval (NOT e)    s = (\<not> pbval e s)"             |
+"pbval (AND e\<^sub>1 e\<^sub>2) s = (pbval e\<^sub>1 s \<and> pbval e\<^sub>2 s)" |
+"pbval (OR e\<^sub>1 e\<^sub>2)  s = (pbval e\<^sub>1 s \<or> pbval e\<^sub>2 s)"
+
+(* Is argument expression in Negation Normal Form - i.e. NOT is only applied to variables *)
+fun is_nnf :: "pbexp \<Rightarrow> bool" where
+"is_nnf (VAR _)       = True"                  |
+"is_nnf (NOT (VAR _)) = True"                  |
+"is_nnf (NOT _)       = False"                 |
+"is_nnf (AND x y)     = (is_nnf x \<and> is_nnf y)" |
+"is_nnf (OR x y)      = (is_nnf x \<or> is_nnf y)"
+
+(* Convert expression to NNF *)
+fun nnf_go :: "bool \<Rightarrow> pbexp \<Rightarrow> pbexp" where
+"nnf_go negate (VAR v)   = (if negate then NOT (VAR v) else VAR v)"  |
+"nnf_go negate (NOT x)   = nnf_go (\<not> negate) x"                      |
+"nnf_go False  (AND x y) = AND (nnf_go False x) (nnf_go False y)"     |
+"nnf_go False  (OR x y)  = OR  (nnf_go False x) (nnf_go False y)"     |
+"nnf_go True   (AND x y) = OR  (nnf_go True x)  (nnf_go True y)"      |
+"nnf_go True   (OR x y)  = AND (nnf_go True x)  (nnf_go True y)"
+
+lemma nnf_go_preserves_semantics : "pbval (nnf_go b e) s = (if b then \<not> pbval e s else pbval e s)"
+apply(induction b e rule: nnf_go.induct)
+apply(simp_all)
+done
+
+lemma nnf_go_is_correct : "is_nnf (nnf_go b e)"
+apply(induction b e rule: nnf_go.induct)
+apply(auto)
+done
+
+
+definition nnf :: "pbexp \<Rightarrow> pbexp" where
+"nnf x = nnf_go False x"
+
+theorem nnf_preserves_semantics : "pbval (nnf e) s = pbval e s"
+apply(simp add: nnf_def nnf_go_preserves_semantics)
+done
+
+theorem nnf_is_correct : "is_nnf (nnf e)"
+apply(induction e)
+apply(auto simp add: nnf_def nnf_go_is_correct)
+done
+
+fun is_conjunct :: "pbexp \<Rightarrow> bool" where
+"is_conjunct (VAR _)   = True"                            |
+"is_conjunct (NOT _)   = True"                            |
+"is_conjunct (AND x y) = (is_conjunct x \<and> is_conjunct y)" |
+"is_conjunct (OR x y)  = False"
+
+fun is_disj_of_conj :: "pbexp \<Rightarrow> bool" where
+"is_disj_of_conj (VAR _)   = True"                            |
+"is_disj_of_conj (NOT _)   = True"                            |
+"is_disj_of_conj (AND x y) = (is_conjunct x \<and> is_conjunct y)" |
+"is_disj_of_conj (OR x y)  = (is_disj_of_conj x \<and> is_disj_of_conj y)"
+
+definition is_dnf :: "pbexp \<Rightarrow> bool" where
+"is_dnf e = (is_nnf e \<and> is_disj_of_conj e)"
+
+fun mk_dnf_conj :: "pbexp \<Rightarrow> pbexp \<Rightarrow> pbexp" where
+(*"mk_dnf_conj (OR x\<^sub>1 y\<^sub>1) (OR x\<^sub>2 y\<^sub>2) =
+  OR (mk_dnf_conj x\<^sub>1 y\<^sub>1)
+     (OR (mk_dnf_conj x\<^sub>1 y\<^sub>2)
+         (OR (mk_dnf_conj x\<^sub>2 y\<^sub>1)
+             (mk_dnf_conj x\<^sub>2 y\<^sub>2)))" | *)
+"mk_dnf_conj e         (OR y\<^sub>1 y\<^sub>2) = OR (mk_dnf_conj e y\<^sub>1) (mk_dnf_conj e y\<^sub>2)" |
+"mk_dnf_conj (OR x\<^sub>1 x\<^sub>2) e         = OR (mk_dnf_conj x\<^sub>1 e) (mk_dnf_conj x\<^sub>2 e)" |
+"mk_dnf_conj x          y         = AND x y"
+
+lemma mk_dnf_conj_preserves_semantics : "pbval (mk_dnf_conj e\<^sub>1 e\<^sub>2) s = (pbval e\<^sub>1 s \<and> pbval e\<^sub>2 s)"
+apply(induction e\<^sub>1 e\<^sub>2 rule: mk_dnf_conj.induct)
+apply(auto)
+done
+
+lemma mk_dnf_conj_maintains_is_nnf : "is_nnf e\<^sub>1 \<Longrightarrow> is_nnf e\<^sub>2 \<Longrightarrow> is_nnf (mk_dnf_conj e\<^sub>1 e\<^sub>2)"
+apply(induction e\<^sub>1 e\<^sub>2 rule: mk_dnf_conj.induct)
+apply(auto)
+done
+
+lemma mk_dnf_conj_maintains_is_disj_of_conj : "is_disj_of_conj e\<^sub>1 \<Longrightarrow> is_disj_of_conj e\<^sub>2 \<Longrightarrow> is_disj_of_conj (mk_dnf_conj e\<^sub>1 e\<^sub>2)"
+apply(induction e\<^sub>1 e\<^sub>2 rule: mk_dnf_conj.induct)
+apply(auto)
+done
+
+fun dnf_of_nnf :: "pbexp \<Rightarrow> pbexp" where
+"dnf_of_nnf (VAR v)   = VAR v"                                     |
+"dnf_of_nnf (NOT e)   = NOT (dnf_of_nnf e)"                        |
+"dnf_of_nnf (AND x y) = mk_dnf_conj (dnf_of_nnf x) (dnf_of_nnf y)" |
+"dnf_of_nnf (OR x y)  = OR (dnf_of_nnf x) (dnf_of_nnf y)"
+
+lemma dnf_of_nnf_preserves_semantics : "pbval (dnf_of_nnf e) s = pbval e s"
+apply(induction e)
+apply(simp_all add: mk_dnf_conj_preserves_semantics)
+done
+
+
+lemma nnf_of_negation : "is_nnf (NOT e) \<Longrightarrow> is_nnf e"
+apply(induction e)
+apply(simp_all)
+done
+
+lemma is_nnf_of_not : "is_nnf (NOT e) \<Longrightarrow> is_nnf (dnf_of_nnf e) \<Longrightarrow> is_nnf (NOT (dnf_of_nnf e))"
+apply(induction e)
+apply(simp_all)
+done
+
+lemma dnf_of_nnf_maintains_is_nnf : "is_nnf e \<Longrightarrow> is_nnf (dnf_of_nnf e)"
+apply(induction e)
+apply(auto simp add: nnf_of_negation)
+apply(simp add: is_nnf_of_not)
+apply(simp add: mk_dnf_conj_maintains_is_nnf)
+done
+
+lemma dnf_of_nnf_maintains_is_disj_of_conj : "is_disj_of_conj (dnf_of_nnf e)"
+apply(induction e)
+apply(auto simp add: mk_dnf_conj_maintains_is_disj_of_conj)
+done
+
+theorem dnf_of_nnf_is_correct : "is_nnf e \<Longrightarrow> is_dnf (dnf_of_nnf e)"
+apply(induction e)
+apply(simp_all add: is_dnf_def)
+apply(simp add: dnf_of_nnf_maintains_is_nnf nnf_of_negation is_nnf_of_not)
+apply(auto simp add: dnf_of_nnf_maintains_is_nnf dnf_of_nnf_maintains_is_disj_of_conj)
+apply(simp add: dnf_of_nnf_maintains_is_nnf mk_dnf_conj_maintains_is_nnf)
+apply(simp add: dnf_of_nnf_maintains_is_disj_of_conj mk_dnf_conj_maintains_is_disj_of_conj)
+done
+
 end
