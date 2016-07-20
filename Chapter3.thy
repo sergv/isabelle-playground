@@ -46,7 +46,7 @@ fun asimp_const :: "aexp \<Rightarrow> aexp" where
    (N x', N y') \<Rightarrow> N (x' + y') |
    (x',   y')   \<Rightarrow> Plus x' y')"
 
-lemma asimp_const_preserves_semantics : "aval (asimp_const e) s = aval e s"
+theorem asimp_const_preserves_semantics : "aval (asimp_const e) s = aval e s"
 apply(induction e)
 apply(auto split: aexp.split)
 done
@@ -67,7 +67,7 @@ fun asimp :: "aexp \<Rightarrow> aexp" where
 "asimp (V x)      = V x" |
 "asimp (Plus x y) = plus x y"
 
-lemma asimp_preserves_semantics : "aval (asimp e) s = aval e s"
+theorem asimp_preserves_semantics : "aval (asimp e) s = aval e s"
 apply(induction e)
 apply(auto simp add: plus_adds)
 done
@@ -157,7 +157,7 @@ apply(induction e)
 apply(auto)
 done
 
-lemma substitute_equals_preserves_semantics : "aval x s = aval y s \<Longrightarrow> aval (subst v x e) s = aval (subst v y e) s"
+theorem substitute_equals_preserves_semantics : "aval x s = aval y s \<Longrightarrow> aval (subst v x e) s = aval (subst v y e) s"
 apply(induction e)
 apply(auto)
 done
@@ -225,7 +225,7 @@ fun inline :: "lexp \<Rightarrow> aexp" where
 "inline (Plusl x y) = Plus (inline x) (inline y)" |
 "inline (LET v x y) = subst v (inline x) (inline y)"
 
-lemma inline_preserves_semantics : "lval e s = aval (inline e) s"
+theorem inline_preserves_semantics : "lval e s = aval (inline e) s"
 apply(induction e arbitrary: s)
 apply(auto)
 apply(simp add: substitution_lemma)
@@ -288,7 +288,7 @@ fun bsimp :: "bexp \<Rightarrow> bexp" where
 "bsimp (And x y)  = and x y" |
 "bsimp (Less x y) = less (asimp x) (asimp y)"
 
-lemma bsimp_preserves_semantics : "bval (bsimp e) s = bval e s"
+theorem bsimp_preserves_semantics : "bval (bsimp e) s = bval e s"
 apply(induction e)
 apply(auto simp add: not_preserves_semantics and_preserves_semantics)
 apply(auto simp add: less_preserves_semantics asimp_preserves_semantics)
@@ -302,11 +302,11 @@ fun Eq :: "aexp \<Rightarrow> aexp \<Rightarrow> bexp" where
 fun Le :: "aexp \<Rightarrow> aexp \<Rightarrow> bexp" where
 "Le x y = Not (Less y x)"
 
-lemma eq_is_correct : "bval (Eq e\<^sub>1 e\<^sub>2) s = (aval e\<^sub>1 s = aval e\<^sub>2 s)"
+theorem eq_is_correct : "bval (Eq e\<^sub>1 e\<^sub>2) s = (aval e\<^sub>1 s = aval e\<^sub>2 s)"
 apply(auto)
 done
 
-lemma le_is_correct : "bval (Le e\<^sub>1 e\<^sub>2) s = (aval e\<^sub>1 s \<le> aval e\<^sub>2 s)"
+theorem le_is_correct : "bval (Le e\<^sub>1 e\<^sub>2) s = (aval e\<^sub>1 s \<le> aval e\<^sub>2 s)"
 apply(auto)
 done
 
@@ -345,7 +345,7 @@ fun if2bexp :: "ifexp \<Rightarrow> bexp" where
 "if2bexp (If c t f)  = or (And (if2bexp c) (if2bexp t)) (And (Not (if2bexp c)) (if2bexp f))" |
 "if2bexp (Less2 x y) = Less x y"
 
-lemma if2bexp_preserves_semantics : "bval (if2bexp e) s = ifval e s"
+theorem if2bexp_preserves_semantics : "bval (if2bexp e) s = ifval e s"
 apply(induction e)
 apply(auto)
 done 
@@ -450,7 +450,7 @@ fun dnf_of_nnf :: "pbexp \<Rightarrow> pbexp" where
 "dnf_of_nnf (AND x y) = mk_dnf_conj (dnf_of_nnf x) (dnf_of_nnf y)" |
 "dnf_of_nnf (OR x y)  = OR (dnf_of_nnf x) (dnf_of_nnf y)"
 
-lemma dnf_of_nnf_preserves_semantics : "pbval (dnf_of_nnf e) s = pbval e s"
+theorem dnf_of_nnf_preserves_semantics : "pbval (dnf_of_nnf e) s = pbval e s"
 apply(induction e)
 apply(simp_all add: mk_dnf_conj_preserves_semantics)
 done
