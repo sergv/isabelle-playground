@@ -1,6 +1,6 @@
 chapter "Arithmetic and Boolean Expressions"
 
-theory Chapter3_ex3_4_AExp imports Main begin
+theory Chapter3_ex3_04_AExp imports Main begin
 
 subsection "Arithmetic Expressions"
 
