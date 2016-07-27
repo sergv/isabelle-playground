@@ -487,4 +487,70 @@ apply(simp add: dnf_of_nnf_maintains_is_nnf mk_dnf_conj_maintains_is_nnf)
 apply(simp add: dnf_of_nnf_maintains_is_disj_of_conj mk_dnf_conj_maintains_is_disj_of_conj)
 done
 
+(** Section 3.3 Stack Machine and Compilation **)
+
+datatype instr = LOADI val | LOAD var_name | ADD
+
+datatype stack = Stack "val list"
+
+fun push :: "val \<Rightarrow> stack \<Rightarrow> stack" where
+"push x (Stack xs) = Stack (x # xs)"
+
+fun top :: "stack \<Rightarrow> val" where
+"top (Stack (x # _)) = x"
+
+fun top2 :: "stack \<Rightarrow> val" where
+"top2 (Stack (_ # x # _)) = x"
+
+fun drop2 :: "stack \<Rightarrow> stack" where
+"drop2 (Stack (_ # _ # xs)) = Stack xs"
+
+lemma top_of_push : "top (push x xs) = x"
+apply(induction xs)
+apply(simp)
+done
+
+lemma top2_of_push_push : "top2 (push x (push y zs)) = y"
+apply(induction zs)
+apply(simp)
+done
+
+lemma drop2_of_push_push : "drop2 (push x (push y zs)) = zs"
+apply(induction)
+apply(simp)
+done
+
+(*
+fun hd2 :: "'a list \<Rightarrow> 'a" where
+"hd2 x = hd (tl x)"
+
+fun tl2 :: "'a list \<Rightarrow> 'a list" where
+"tl2 xs = tl (tl xs)"
+*)
+
+fun exec1 :: "instr \<Rightarrow> state \<Rightarrow> stack \<Rightarrow> stack" where
+"exec1 (LOADI n) _ stk = push n stk"     |
+"exec1 (LOAD v)  s stk = push (s v) stk" |
+"exec1 ADD       _ stk = push (top stk + top2 stk) (drop2 stk)"
+
+fun exec :: "instr list \<Rightarrow> state \<Rightarrow> stack \<Rightarrow> stack" where
+"exec []       _ stk = stk" |
+"exec (i # is) s stk = exec is s (exec1 i s stk)"
+
+fun comp :: "aexp \<Rightarrow> instr list" where
+"comp (N n)      = [LOADI n]" |
+"comp (V v)      = [LOAD v]"  |
+"comp (Plus x y) = comp x @ comp y @ [ADD]"
+
+lemma exec_composite_list_of_instructions : "exec (is\<^sub>1 @ is\<^sub>2) s stk = exec is\<^sub>2 s (exec is\<^sub>1 s stk)"
+apply(induction is\<^sub>1 arbitrary: stk)
+apply(simp_all)
+done
+
+lemma comp_is_correct : "exec (comp e) s stk = push (aval e s) stk"
+apply(induction e arbitrary: stk)
+apply(simp_all add: exec_composite_list_of_instructions)
+apply(simp add: top_of_push top2_of_push_push drop2_of_push_push algebra_simps)
+done
+
 end
