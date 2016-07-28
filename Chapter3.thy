@@ -520,14 +520,6 @@ apply(induction)
 apply(simp)
 done
 
-(*
-fun hd2 :: "'a list \<Rightarrow> 'a" where
-"hd2 x = hd (tl x)"
-
-fun tl2 :: "'a list \<Rightarrow> 'a list" where
-"tl2 xs = tl (tl xs)"
-*)
-
 fun exec1 :: "instr \<Rightarrow> state \<Rightarrow> stack \<Rightarrow> stack" where
 "exec1 (LOADI n) _ stk = push n stk"     |
 "exec1 (LOAD v)  s stk = push (s v) stk" |
