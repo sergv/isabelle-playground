@@ -162,6 +162,8 @@ apply(induction e)
 apply(auto)
 done
 
+(* Exercise 3.4 - See file Chapter3_ex3_04_AExp.thy *)
+
 (* Exercise 3.5 *)
 
 datatype aexp\<^sub>2 =
@@ -544,5 +546,7 @@ apply(induction e arbitrary: stk)
 apply(simp_all add: exec_composite_list_of_instructions)
 apply(simp add: top_of_push top2_of_push_push drop2_of_push_push algebra_simps)
 done
+
+(* Exercise 3.10 - See file Chapter3_ex3_10_ASM.thy *)
 
 end
