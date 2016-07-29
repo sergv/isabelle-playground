@@ -579,7 +579,7 @@ fun reg_comp :: "aexp \<Rightarrow> reg \<Rightarrow> reg_instr list" where
   (let r' = Suc r
    in  reg_comp x r @ reg_comp y r' @ [ADD r r'])"
 
-lemma reg_comp_does_not_change_registers_below : "r < r' \<Longrightarrow> reg_exec (reg_comp e r') s rs r = rs r"
+lemma reg_comp_preserves_lower_registers : "r < r' \<Longrightarrow> reg_exec (reg_comp e r') s rs r = rs r"
 apply(induction e arbitrary: rs r')
 apply(auto simp add: reg_exec_instruction_sequence)
 done
@@ -587,7 +587,61 @@ done
 theorem reg_comp_preserves_semantics : "reg_exec (reg_comp e r) s rs r = aval e s"
 apply(induction e arbitrary: rs r)
 apply(auto)
-apply(auto simp add: reg_exec_instruction_sequence reg_comp_does_not_change_registers_below)
+apply(auto simp add: reg_exec_instruction_sequence reg_comp_preserves_lower_registers)
+done
+
+(* Exercise 3.12 *)
+
+(* All operations except MV0 leave their result in register 0. MV0 takes its input from register 0 *)
+datatype instr0 =
+    LDI0 val
+  | LD0 var_name
+  | MV0 reg
+  | ADD0 reg
+
+fun exec0_1 :: "instr0 \<Rightarrow> state \<Rightarrow> (reg \<Rightarrow> val) \<Rightarrow> (reg \<Rightarrow> val)" where
+"exec0_1 (LDI0 n) _ rs = rs (0 := n)"    |
+"exec0_1 (LD0 v)  s rs = rs (0 := s v)"  |
+"exec0_1 (MV0 r)  _ rs = rs (r := rs 0)" |
+"exec0_1 (ADD0 r) _ rs = rs (0 := rs 0 + rs r)"
+
+fun exec0 :: "instr0 list \<Rightarrow> state \<Rightarrow> (reg \<Rightarrow> val) \<Rightarrow> (reg \<Rightarrow> val)" where
+"exec0 []       _ rs = rs" |
+"exec0 (i # is) s rs = exec0 is s (exec0_1 i s rs)"
+
+lemma exec0_of_composite_instruction_list : "exec0 (xs @ ys) s rs r = exec0 ys s (exec0 xs s rs) r"
+apply(induction xs arbitrary: rs)
+apply(auto)
+done
+
+fun comp0_with_intermed_reg :: "aexp \<Rightarrow> reg \<Rightarrow> instr0 list" where
+"comp0_with_intermed_reg (N n)      _ = [LDI0 n]" |
+"comp0_with_intermed_reg (V v)      _ = [LD0 v]"  |
+"comp0_with_intermed_reg (Plus x y) r = 
+    comp0_with_intermed_reg x (Suc r)
+  @ [MV0 r]
+  @ comp0_with_intermed_reg y (Suc r)
+  @ [ADD0 r]"
+
+lemma comp0_with_intermed_reg_preserves_lower_registers : "0 < r \<Longrightarrow> r < r' \<Longrightarrow> exec0 (comp0_with_intermed_reg e r') s rs r = rs r"
+apply(induction e arbitrary: r' rs)
+apply(auto simp add: exec0_of_composite_instruction_list)
+done
+
+lemma comp0_with_intermed_reg_preserves_semantics : "0 < r \<Longrightarrow> exec0 (comp0_with_intermed_reg e r) s rs 0 = aval e s"
+apply(induction e arbitrary: r rs)
+apply(auto simp add: exec0_of_composite_instruction_list comp0_with_intermed_reg_preserves_lower_registers)
+done
+
+fun comp0 :: "aexp \<Rightarrow> instr0 list" where
+"comp0 e = comp0_with_intermed_reg e (Suc 0)"
+
+theorem comp0_preserves_semantics : "exec0 (comp0 e) s rs 0 = aval e s"
+apply(induction e)
+apply(simp_all add:
+      exec0_of_composite_instruction_list
+      comp0_with_intermed_reg_preserves_lower_registers
+      comp0_with_intermed_reg_preserves_semantics)
 done
 
 end
