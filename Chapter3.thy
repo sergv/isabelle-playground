@@ -549,4 +549,45 @@ done
 
 (* Exercise 3.10 - See file Chapter3_ex3_10_ASM.thy *)
 
+(* Exercise 3.11 *)
+
+type_synonym reg = nat
+
+datatype reg_instr =
+    LDI int reg
+  | LD var_name reg
+  | ADD reg reg
+
+fun reg_exec1 :: "reg_instr \<Rightarrow> state \<Rightarrow> (reg \<Rightarrow> int) \<Rightarrow> (reg \<Rightarrow> int)" where
+"reg_exec1 (LDI n r)  _ rs = rs (r := n)"   |
+"reg_exec1 (LD v r)   s rs = rs (r := s v)" |
+"reg_exec1 (ADD r\<^sub>1 r\<^sub>2) _ rs = rs (r\<^sub>1 := rs r\<^sub>1 + rs r\<^sub>2)"
+
+fun reg_exec :: "reg_instr list \<Rightarrow> state \<Rightarrow> (reg \<Rightarrow> int) \<Rightarrow> (reg \<Rightarrow> int)" where
+"reg_exec []       _ f = f" |
+"reg_exec (i # is) s f = reg_exec is s (reg_exec1 i s f)"
+
+lemma reg_exec_instruction_sequence : "reg_exec (xs @ ys) s rs r = reg_exec ys s (reg_exec xs s rs) r"
+apply(induction xs arbitrary: rs)
+apply(auto)
+done
+
+fun reg_comp :: "aexp \<Rightarrow> reg \<Rightarrow> reg_instr list" where
+"reg_comp (N n)      r = [LDI n r]" |
+"reg_comp (V v)      r = [LD v r]"  |
+"reg_comp (Plus x y) r =
+  (let r' = Suc r
+   in  reg_comp x r @ reg_comp y r' @ [ADD r r'])"
+
+lemma reg_comp_does_not_change_registers_below : "r < r' \<Longrightarrow> reg_exec (reg_comp e r') s rs r = rs r"
+apply(induction e arbitrary: rs r')
+apply(auto simp add: reg_exec_instruction_sequence)
+done
+
+theorem reg_comp_preserves_semantics : "reg_exec (reg_comp e r) s rs r = aval e s"
+apply(induction e arbitrary: rs r)
+apply(auto)
+apply(auto simp add: reg_exec_instruction_sequence reg_comp_does_not_change_registers_below)
+done
+
 end
