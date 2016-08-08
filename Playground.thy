@@ -266,7 +266,9 @@ fun three_to_nat :: "('a, 'b) three \<Rightarrow> nat" where
 datatype 'a option = None | Some 'a
 
 (* NB Tuples are simulated by pairs nested to the right.
-      I.e. (a * b * c) is a shorthand for (a * (b * c))
+      I.e. (a * b * c) is a shorthand for (a * (b * c)).
+
+   Can also use pretty version of *, namely \<times>. Enter it as \<times>.
  *)
 
 fun lookup :: "('a * 'b) list \<Rightarrow> 'a \<Rightarrow> 'b option" where
@@ -311,7 +313,7 @@ done
  *)
 
 (* If function takes several arguments then induction rule is applied like this:
-   apply(induction x1, x2, ..., xN rule: f.induct
+   apply(induction x1, x2, ..., xN rule: f.induct)
   *)
 
 (* Exercises 2.3 *)
