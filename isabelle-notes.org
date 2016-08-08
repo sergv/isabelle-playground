@@ -1,0 +1,45 @@
+#+TITLE:       isabelle-notes
+#+DATE:        Monday,  8 August 2016
+#+EMAIL:       serg.foo@gmail.com
+#+DESCRIPTION:
+#+KEYWORDS:
+#+STARTUP:     content
+#+STARTUP:     inlineimages
+
+# Disable treating underscores as subscripts
+#+OPTIONS: ^:nil
+
+* Definitions
+  Definitions are intended for abstract concepts, but can be expanded with
+
+#+BEGIN_EXAMPLE
+apply(simp add: definition_name_def)
+#+END_EXAMPLE
+
+  for some definition definition_name.
+
+  Simplification can be temporarily undone by
+
+#+BEGIN_EXAMPLE
+apply(simp del: rule_name)
+#+END_EXAMPLE
+
+* Induction
+  If function takes several arguments then induction rule is applied like this:
+
+#+BEGIN_EXAMPLE
+apply(induction x1, x2, ..., xN rule: f.induct)
+#+END_EXAMPLE
+
+* Expanding case expressions
+  In order to expand case expressions, special rules must be used.
+
+  | Purpose              | Rule type                                               |
+  | For tuples           | apply(auto simp add: split_def)                         |
+  | For let expressions  | apply(auto simp add: Let_def)                           |
+  | For other data types | apply(auto split: <type name>.split), e.g. option.split |
+  |                      |                                                         |
+
+* Special symbols
+  Composition - \circ
+  Pretty tuples - \times
