@@ -10,7 +10,14 @@
 #+OPTIONS: ^:nil
 
 * Definitions
-  Definitions are intended for abstract concepts, but can be expanded with
+  Definitions are intended for abstract concepts. Define them like this
+
+#+BEGIN_EXAMPLE
+definition foo :: "int \<Rightarrow> int" where
+"foo x = x + x"
+#+END_EXAMPLE
+
+  They can be expanded with
 
 #+BEGIN_EXAMPLE
 apply(simp add: definition_name_def)
