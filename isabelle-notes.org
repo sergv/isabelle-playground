@@ -50,3 +50,21 @@ apply(induction x1, x2, ..., xN rule: f.induct)
 * Special symbols
   Composition - \circ
   Pretty tuples - \times
+
+* Proof methods
+** auto
+** simp
+** simp_all
+** fastforce, force
+   May be confused by complicated quantifiers.
+** blast - good for logical formulas, esp. first-order ones, sets and relations
+** sledgehammer
+   Queries external SMT solver for a proof that can be checked by Isabelle.
+   Isabelle does not just trust external tools.
+** rule
+   Substitute rule in the goal with rule's premises.
+
+   apply(rule) - try to apply suitable logical rule to current goal, e.g.
+   decompose conjunction into standalone goals
+
+   apply(rule xyz) - apply rule xyz
