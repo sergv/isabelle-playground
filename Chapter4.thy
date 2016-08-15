@@ -141,4 +141,16 @@ apply(assumption) (* Prove first case "star r x c \<Longrightarrow> star r x c" 
 apply(metis step)
 done
 
+(* Exercise 4.2 *)
+
+inductive palindrome :: "'a list \<Rightarrow> bool" where
+empty     : "palindrome []"  |
+singleton : "palindrome [x]" |
+step      : "palindrome xs \<Longrightarrow> palindrome (x # xs @ [x])"
+
+theorem palindrome_reverse : "palindrome xs \<Longrightarrow> rev xs = xs"
+apply(induction rule: palindrome.induct)
+apply(simp_all)
+done
+
 end
