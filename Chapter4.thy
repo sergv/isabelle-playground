@@ -16,7 +16,7 @@ begin
    than A\<^sub>1 \<and> A\<^sub>2 \<and> ... \<and> A\<^sub>n \<longrightarrow> A.
 *)
 
-(* Exercise 4.1  *)
+(* Exercise 4.1 *)
 
 datatype 'a tree =
     Tip
@@ -47,14 +47,14 @@ fun tree_upper_bound :: "'a \<Rightarrow> ('a bounds) tree \<Rightarrow> 'a" whe
 
 fun annotate_with_bounds :: "'a tree \<Rightarrow> ('a bounds) tree" where
 "annotate_with_bounds Tip                 = Tip" |
-"annotate_with_bounds (Node x left right) = 
+"annotate_with_bounds (Node x left right) =
  (let left'  = annotate_with_bounds left;
       right' = annotate_with_bounds right
   in  Node (Bounds x (tree_lower_bound x left') (tree_upper_bound x right')) left' right')"
 
 fun is_ordered :: "(int bounds) tree \<Rightarrow> bool" where
 "is_ordered Tip = True" |
-"is_ordered (Node b left right) = 
+"is_ordered (Node b left right) =
  (let elem = element b in
   is_ordered left \<and>
   is_ordered right \<and>
@@ -101,6 +101,44 @@ done
 theorem ins_preserves_ordering : "ord t \<Longrightarrow> ord (ins x t)"
 apply(induction t)
 apply(auto simp add: Let_def ins_maintains_lower_bound ins_maintains_upper_bound)
+done
+
+(* 4.5 Inductive definitions *)
+
+inductive ev :: "nat \<Rightarrow> bool" where
+ev0  : "ev 0" |
+evSS : "ev n \<Longrightarrow> ev (Suc (Suc n))"
+
+thm "evSS"
+
+(* Inductive ev created two new "lemmas", ev0 and evSS, which can be used in proofs.
+
+   They can be applied either in forward fashion
+
+   evSS[OF evSS[OF ev0]]
+
+   or in backward way when prooving a lemma. E.g.
+   *)
+
+lemma "ev (Suc (Suc (Suc (Suc 0))))"
+apply(rule evSS)
+apply(rule evSS)
+apply(rule ev0)
+done
+
+(* The "for r" part is merely a hint to Isabelle that r is a fixed parameter of star.
+   This hint allows to generate simpler induction rule.
+   *)
+inductive star :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" for r where
+refl : "star r x x" |
+step : "r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
+
+thm "star.induct"
+
+lemma star_trans : "star r a b \<Longrightarrow> star r b c \<Longrightarrow> star r a c"
+apply(induction rule: star.induct)
+apply(assumption) (* Prove first case "star r x c \<Longrightarrow> star r x c" *)
+apply(metis step)
 done
 
 end
