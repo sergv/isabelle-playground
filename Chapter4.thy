@@ -113,12 +113,11 @@ thm "evSS"
 
 (* Inductive ev created two new "lemmas", ev0 and evSS, which can be used in proofs.
 
-   They can be applied either in forward fashion
+   They can be applied either in forward fashion *)
 
-   evSS[OF evSS[OF ev0]]
+thm evSS[OF evSS[OF ev0]]
 
-   or in backward way when prooving a lemma. E.g.
-   *)
+(* Or in backward way when prooving a lemma. E.g. *)
 
 lemma "ev (Suc (Suc (Suc (Suc 0))))"
 apply(rule evSS)
@@ -144,13 +143,63 @@ done
 (* Exercise 4.2 *)
 
 inductive palindrome :: "'a list \<Rightarrow> bool" where
-empty     : "palindrome []"  |
-singleton : "palindrome [x]" |
-step      : "palindrome xs \<Longrightarrow> palindrome (x # xs @ [x])"
+pempty     : "palindrome []"  |
+psingleton : "palindrome [x]" |
+pstep      : "palindrome xs \<Longrightarrow> palindrome (x # xs @ [x])"
 
 theorem palindrome_reverse : "palindrome xs \<Longrightarrow> rev xs = xs"
 apply(induction rule: palindrome.induct)
 apply(simp_all)
+done
+
+(* Exercise 4.3 *)
+
+inductive star' :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" for r where
+refl' : "star' r x x" |
+step' : "star' r x y \<Longrightarrow> r y z \<Longrightarrow> star' r x z"
+
+thm "star'.induct"
+thm "refl'"
+thm "step'"
+thm step'[OF refl']
+thm step'[OF step'[OF refl']]
+thm "star'.intros"
+
+lemma star'_singleton : "r x y \<Longrightarrow> star' r x y"
+(*apply(metis step' refl')*)
+apply(rule step'[OF refl'])
+apply(assumption)
+done
+
+lemma ext_star'_from_left : "star' r y z \<Longrightarrow> r x y \<Longrightarrow> star' r x z"
+apply(induction rule: star'.induct)
+apply(rule star'_singleton)
+apply(assumption)
+apply(simp)
+apply(metis step')
+done
+
+theorem star_implies_star' : "star r a b \<Longrightarrow> star' r a b"
+apply(induction rule: star.induct)
+apply(rule refl')
+apply(simp add: step ext_star'_from_left)
+done
+
+lemma star_singleton : "r a b \<Longrightarrow> star r a b"
+by(metis step refl)
+
+lemma ext_star_from_right : "star r a b \<Longrightarrow> r b c \<Longrightarrow> star r a c"
+apply(induction rule: star.induct)
+apply(rule star_singleton)
+apply(assumption)
+apply(simp)
+apply(metis step)
+done
+
+theorem star'_implies_star : "star' r a b \<Longrightarrow> star r a b"
+apply(induction rule: star'.induct)
+apply(rule refl)
+apply(simp add: step ext_star_from_right)
 done
 
 end
