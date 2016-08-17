@@ -202,4 +202,20 @@ apply(rule refl)
 apply(simp add: step ext_star_from_right)
 done
 
+(* Exercise 4.4 *)
+
+value "Suc"
+
+inductive iter :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" for r where
+irefl : "iter r 0 x x" |
+istep : "r x y \<Longrightarrow> iter r n y z \<Longrightarrow> iter r (Suc n) x z"
+
+thm "iter.induct"
+
+theorem star_implies_iter : "star r x y \<Longrightarrow> \<exists> n. iter r n x y"
+apply(induction rule: star.induct)
+apply(metis irefl)
+apply(metis istep)
+done
+
 end
