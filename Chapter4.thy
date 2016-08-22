@@ -1,5 +1,5 @@
 theory Chapter4
-imports Main
+imports Main Chapter3
 begin
 
 (** Chapter 4 Logic and Proof Beyond Equality **)
@@ -267,6 +267,34 @@ apply(assumption)
 apply(rule composite_T)
 apply(assumption)
 apply(assumption)
+done
+
+(* Exercise 4.6 *)
+
+inductive aval_rel :: "aexp \<Rightarrow> state \<Rightarrow> val \<Rightarrow> bool" (*for s :: state*) where
+base_Nat  : "aval_rel (N n) s n"     |
+base_Var  : "aval_rel (V v) s (s v)" |
+step_Plus : "aval_rel e\<^sub>1 s n\<^sub>1 \<Longrightarrow> aval_rel e\<^sub>2 s n\<^sub>2 \<Longrightarrow> aval_rel (Plus e\<^sub>1 e\<^sub>2) s (n\<^sub>1 + n\<^sub>2)"
+
+thm aval_rel.induct
+
+theorem avar_rel_is_consistent_with_aval : "aval_rel e s v \<Longrightarrow> aval e s = v"
+apply(induction rule: aval_rel.induct)
+apply(auto)
+done
+
+thm "eq_commute"
+
+theorem aval_is_consistent_with_aval_rel : "aval e s = v \<Longrightarrow> aval_rel e s v"
+apply(induction e arbitrary: v)
+apply(simp)
+apply(rule base_Nat)
+apply(simp)
+apply(simp only: eq_commute)
+apply(rule base_Var)
+apply(simp only: eq_commute aval.simps)
+apply(rule step_Plus)
+apply(auto)
 done
 
 end
