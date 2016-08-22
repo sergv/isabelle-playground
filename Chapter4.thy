@@ -218,4 +218,55 @@ apply(metis irefl)
 apply(metis istep)
 done
 
+(* Exercise 4.5 *)
+
+datatype alpha = a | b
+
+inductive S :: "alpha list \<Rightarrow> bool" where
+emptyS     : "S []"                    |
+balanceS   : "S s \<Longrightarrow> S (a # s @ [b])" |
+duplicateS : "S x \<Longrightarrow> S y \<Longrightarrow> S (x @ y)"
+
+inductive T :: "alpha list \<Rightarrow> bool" where
+emptyT   : "T []" |
+balanceT : "T x \<Longrightarrow> T y \<Longrightarrow> T (x @ [a] @ y @ [b])"
+
+thm balanceT[OF emptyT]
+lemmas balanceT' = balanceT[OF emptyT, simplified]
+
+theorem T_implies_S : "T w \<Longrightarrow> S w"
+apply(induction rule: T.induct)
+apply(metis emptyS)
+thm duplicateS[OF _ balanceS]
+apply(simp)
+apply(rule duplicateS[OF _ balanceS])
+apply(assumption)
+apply(assumption)
+done
+
+lemma balance_composite_first : "T (z @ x) \<Longrightarrow> T y \<Longrightarrow> T (z @ x @ [a] @ y @ [b])"
+apply(simp)
+apply(rule balanceT[of "z @ x" y, simplified])
+apply(assumption)
+apply(assumption)
+done
+
+lemma composite_T : "T y \<Longrightarrow> T x \<Longrightarrow> T (x @ y)"
+apply(induction arbitrary: x rule: T.induct)
+apply(simp)
+apply(rename_tac x y z)
+apply(rule balance_composite_first)
+apply(auto)
+done
+
+theorem S_implies_T : "S w \<Longrightarrow> T w"
+apply(induction rule: S.induct)
+apply(metis emptyT)
+apply(rule balanceT')
+apply(assumption)
+apply(rule composite_T)
+apply(assumption)
+apply(assumption)
+done
+
 end
