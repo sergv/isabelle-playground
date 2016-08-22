@@ -2,7 +2,7 @@ theory Chapter4
 imports Main
 begin
 
-(* Chapter 4 Logic and Proof Beyond Equality *)
+(** Chapter 4 Logic and Proof Beyond Equality **)
 
 (* Formulas are terms of type bool.
 
@@ -103,7 +103,7 @@ apply(induction t)
 apply(auto simp add: Let_def ins_maintains_lower_bound ins_maintains_upper_bound)
 done
 
-(* 4.5 Inductive definitions *)
+(** Section 4.5 Inductive definitions **)
 
 inductive ev :: "nat \<Rightarrow> bool" where
 ev0  : "ev 0" |
