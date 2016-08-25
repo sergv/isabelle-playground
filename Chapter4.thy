@@ -297,4 +297,47 @@ apply(rule step_Plus)
 apply(auto)
 done
 
+(* Exercise 4.7 *)
+
+inductive ok :: "nat \<Rightarrow> instr list \<Rightarrow> nat \<Rightarrow> bool" where
+ok_base       : "ok n [] n"                                                                |
+ok_step_LOADI : "ok n is n'                                       \<Longrightarrow> ok n (is @ [LOADI k])   (Suc n')" |
+ok_step_LOAD  : "ok n is n'                                       \<Longrightarrow> ok n (is @ [LOAD v])    (Suc n')" |
+ok_step_ADD   : "ok n is\<^sub>1 (Suc n) \<Longrightarrow> ok (Suc n) is\<^sub>2 (Suc (Suc n)) \<Longrightarrow> ok n (is\<^sub>1 @ is\<^sub>2 @ [instr.ADD]) (Suc n)"
+
+thm ok.induct
+
+fun stack_length :: "stack \<Rightarrow> nat" where
+"stack_length (Stack xs) = length xs"
+
+lemma length_of_pushed_stack : "stack_length (push x stk) = Suc (stack_length stk)"
+apply(induction stk)
+apply(auto)
+done
+
+lemma length_of_twice_dropped_stack : "stack_length stk = Suc (Suc n) \<Longrightarrow> stack_length (drop2 stk) = n"
+apply(induction stk rule: drop2.induct)
+apply(simp_all)
+done
+
+theorem ok_correctly_computes_final_stack_size : "\<lbrakk> ok n is m; stack_length stk = n \<rbrakk> \<Longrightarrow> stack_length (exec is s stk) = m"
+apply(induction arbitrary: stk rule: ok.induct)
+apply(simp)
+apply(simp_all only: exec_composite_list_of_instructions exec.simps exec1.simps)
+apply(simp_all only: length_of_pushed_stack)
+apply(simp only: length_of_twice_dropped_stack)
+done
+
+theorem comp_result_has_no_stack_underflow : "ok n (comp e) (Suc n)"
+apply(induction e arbitrary: n)
+apply(simp_all)
+thm ok_step_LOADI[OF ok_base, simplified]
+apply(rule ok_step_LOADI[OF ok_base, simplified])
+apply(rule ok_step_LOAD[OF ok_base, simplified])
+thm ok_step_ADD
+apply(rule ok_step_ADD)
+apply(assumption)
+apply(assumption)
+done
+
 end
