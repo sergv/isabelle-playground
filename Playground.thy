@@ -84,7 +84,7 @@ done
 value "rev (rev xs)"
 
 (* Predefined lists:
-   [                 - empty list
+   []                - empty list
    x # xs            - cons x onto xs
    [x1, x2, ..., xn] = x1 # x2 # ... # xn # []
    xs @ ys           - append xs and ys
@@ -96,8 +96,8 @@ value "rev (rev xs)"
    tl     :: 'a list \<Rightarrow> 'a list
    *)
 
-(* HOL is logic of total functions, the head function (as well as hd) has some result on
-   empty list, but we don'n know what it is.
+(* HOL is a logic of total functions, the head function (as well as hd) has some result on
+   empty list, but we don't know what it is.
 
    Thus (head []) is underdefined rather than undefined. This means that head [] will not be
    simplified (reduced).
@@ -180,11 +180,13 @@ fun count :: "'a \<Rightarrow> 'a list \<Rightarrow> nat" where
 "count x (y # ys) = cond (x = y) (Suc (count x ys)) (count x ys)"
 
 value "equal 1 1 :: bool"
+value "1 = 1"
 value "op \<le>"
 
 theorem count_lt_length : "count x xs \<le> length xs"
 apply(induction xs)
-apply(auto)
+apply(simp)
+apply(simp)
 done
 
 (* 2.4 *)
@@ -203,10 +205,10 @@ apply(auto)
 done
 
 value "reverse' (snoc x (a # xs)) = reverse' (a # snoc x xs)"
-value "reverse' (a # snoc x xs) = snoc a (reverse' (snoc x xs))"
+value "reverse' (a # snoc x xs)   = snoc a (reverse' (snoc x xs))"
 (* by IH *)
 value "snoc a (reverse' (snoc x xs)) = snoc a (x # reverse' xs)"
-value "snoc a (x # reverse' xs) = x # snoc a (reverse' xs)"
+value "snoc a (x # reverse' xs)      = x # snoc a (reverse' xs)"
 
 theorem reverse'_reverse' : "reverse' (reverse' xs) = xs"
 apply(induction xs)
