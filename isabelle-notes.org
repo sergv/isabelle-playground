@@ -9,6 +9,26 @@
 # Disable treating underscores as subscripts
 #+OPTIONS: ^:nil
 
+* Useful declarations
+  - ~declare [[names_short]]~ - do not quantify ambiguous names when printing
+  - ~using [[simp_trace_new mode=full]]~ - use within proofs to see what ~simp~ proof tactic did
+
+* Data types
+
+#+BEGIN_EXAMPLE
+datatype 'a lst = Nil | Cons 'a "'a lst"
+#+END_EXAMPLE
+
+* Functions
+
+  Individual equations can be named in order to invoke them within proofs later.
+
+#+BEGIN_EXAMPLE
+fun append :: "'a lst \<Rightarrow> 'a lst \<Rightarrow> 'a lst" where
+  append_Nil:  "append Nil ys = ys"
+| append_Cons: "append (Cons x xs) ys = Cons x (app xs ys)"
+#+END_EXAMPLE
+
 * Definitions
   Definitions are intended for abstract concepts. Define them like this
 

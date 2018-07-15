@@ -35,6 +35,9 @@ declare [[names_short]]
 (* NB can omit quotes around variables, e.g. datatype 'a lst = Nil | Cons 'a "'a lst" *)
 datatype 'a lst = Nil | Cons "'a" "'a lst"
 
+thm lst.rec[no_vars]
+print_theorems
+  
 fun app :: "'a lst \<Rightarrow> 'a lst \<Rightarrow> 'a lst" where
 "app Nil         ys = ys" |
 "app (Cons x xs) ys = Cons x (app xs ys)"
@@ -440,6 +443,11 @@ apply(induction xs arbitrary: ys)
 apply(auto)
 done
 
+lemma itrev_helper_reverses_alt : "\<forall> ys. itrev_helper xs ys = rev xs @ ys"
+apply(induction xs)
+apply(auto)
+done
+  
 theorem itrev_reverses : "itrev xs = rev xs"
 apply(auto)
 done
