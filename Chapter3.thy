@@ -89,7 +89,7 @@ done
 
 value "Some 1"
 value "None"
-value "fst"
+type "fst"
 value "let (x, y) = (1, 2 :: int) in x + y"
 
 datatype aexp_simplified =

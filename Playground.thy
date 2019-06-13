@@ -1,5 +1,5 @@
 theory Playground
-imports Main
+  imports Main
 begin
 
 (*
@@ -35,6 +35,7 @@ declare [[names_short]]
 (* NB can omit quotes around variables, e.g. datatype 'a lst = Nil | Cons 'a "'a lst" *)
 datatype 'a lst = Nil | Cons "'a" "'a lst"
 
+thm lst.rec
 thm lst.rec[no_vars]
 print_theorems
   
@@ -97,6 +98,7 @@ value "rev (rev xs)"
    map    :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list
    hd     :: 'a list \<Rightarrow> 'a
    tl     :: 'a list \<Rightarrow> 'a list
+   sum_list :: 'a list \<Rightarrow> 'a
    *)
 
 (* HOL is a logic of total functions, the head function (as well as hd) has some result on
@@ -107,9 +109,9 @@ value "rev (rev xs)"
    *)
 
 fun head :: "'a lst \<Rightarrow> 'a" where
-"head (Cons x S) = x"
+"head (Cons x xs) = x"
 
-value "head Nil"
+value "head Nil" 
 
 (* Exercises 2.2 *)
 
@@ -183,8 +185,8 @@ fun count :: "'a \<Rightarrow> 'a list \<Rightarrow> nat" where
 "count x (y # ys) = cond (x = y) (Suc (count x ys)) (count x ys)"
 
 value "equal 1 1 :: bool"
-value "1 = 1"
-value "op \<le>"
+value "(1 :: nat) = 1"
+value "(\<le>)"
 
 theorem count_lt_length : "count x xs \<le> length xs"
 apply(induction xs)
@@ -307,6 +309,8 @@ fun div2 :: "nat \<Rightarrow> nat" where
 "div2 (Suc 0)       = 0" |
 "div2 (Suc (Suc n)) = Suc (div2 n)"
 
+thm div2.induct
+
 lemma div2_is_div : "div2 n = n div 2"
 (* apply customized induction rule *)
 apply(induction n rule: div2.induct)
@@ -329,8 +333,6 @@ datatype 'a tree =
     Leaf
   | Branch "'a" "'a tree" "'a tree"
 
-value "listsum [1, 2, 3] :: int"
-
 fun contents :: "'a tree \<Rightarrow> 'a list" where
 "contents Leaf = []" |
 "contents (Branch x left right) = contents left @ x # contents right"
@@ -339,7 +341,7 @@ fun treesum :: "nat tree \<Rightarrow> nat" where
 "treesum Leaf = 0" |
 "treesum (Branch x left right) = treesum left + treesum right + x"
 
-theorem treesum_is_listsum : "treesum t = listsum (contents t)"
+theorem treesum_is_listsum : "treesum t = sum_list (contents t)"
 apply(induction t)
 apply(auto)
 done
@@ -514,6 +516,9 @@ apply(auto)
 apply(simp add: algebra_simps) (* Standard arithmetic operations properties *)
 done
 
+thm algebra[no_vars]
+thm algebra_simps[no_vars]
+
 (* Exercise 2.11 *)
 
 datatype exp =
@@ -549,7 +554,7 @@ fun poly_shift :: "nat \<Rightarrow> polynomial \<Rightarrow> polynomial" where
 "poly_shift (Suc n) xs = poly_shift n (0 # xs)"
 
 fun poly_scale :: "int \<Rightarrow> polynomial \<Rightarrow> polynomial" where
-"poly_scale c xs = map (op * c) xs"
+"poly_scale c xs = map (( *) c) xs"
 
 fun poly_mul :: "polynomial \<Rightarrow> nat \<Rightarrow> polynomial \<Rightarrow> polynomial" where
 "poly_mul []       _ _  = []" |
@@ -573,7 +578,7 @@ apply(induction xs ys arbitrary: n rule: poly_add.induct)
 apply(auto simp add: algebra_simps)
 done
 
-lemma poly_scale_scales [simp] : "evalp_helper (map (op * c) xs) v n = c * evalp_helper xs v n"
+lemma poly_scale_scales [simp] : "evalp_helper (map (( *) c) xs) v n = c * evalp_helper xs v n"
 apply(induction xs arbitrary: n)
 apply(auto simp add: algebra_simps)
 done
@@ -601,7 +606,7 @@ apply(simp add: algebra_simps evalp_helper_composite_power)
 done
 
 theorem poly_conversion_preserves_value : "evalp (coeffs exp) v = eval exp v"
-apply(induction exp arbitrary: v)
+apply(induction exp (*arbitrary: v*))
 apply(auto)
 (*apply(simp add: algebra_simps)*)
 done

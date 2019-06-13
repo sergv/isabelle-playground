@@ -10,18 +10,52 @@
 #+OPTIONS: ^:nil
 
 * Useful declarations
-  - ~declare [[names_short]]~ - do not quantify ambiguous names when printing
-  - ~using [[simp_trace_new mode=full]]~ - use within proofs to see what ~simp~ proof tactic did
+- ~declare [[names_short]]~ - do not quantify ambiguous names when printing
+- ~using [[simp_trace_new mode=full]]~ - use within proofs to see what ~simp~ proof tactic did
+
+* Toplevel commands
+- ~print_theorems~ - show all currently known theorems
+- ~thm lst.rec~ print a theorem
+- ~thm lst.rec[no_vars]~ print a theorem without metavariables
+- ~value "2 + 2 :: nat"~ - evaluate to a value
+
+* Quotations
+Q Where do I have to put those double quotes?
+
+A Isabelle distinguishes between inner and outer syntax. The outer
+syntax comes from the Isabelle framework, the inner syntax is the one
+in between quotation marks and comes from the object logic (in this
+case HOL). With time the distinction between the two becomes obvious,
+but in the beginning the following rules of thumb may work: types
+should be inside quotation marks, formulas and lemmas should be inside
+quotation marks, rules and equations (e.g. for definitions) should be
+inside quotation marks, commands like lemma, definition, primrec,
+inductive, apply, done are without quotation marks, as are the names
+of constants in constant definitions (consts and constdefs)
+
+* TeX generation
+Q I want to generate one of those flashy LaTeX documents. How?
+
+A You will need to work with the isabelle command in a Unix shell. The
+easiest way to get to a document is the following: use isabelle mkdir
+to set up a new directory. The command will also create a file called
+IsaMakefile in the current directory. Put your theory file(s) into the
+new directory and edit the file ROOT.ML in there (following the
+comments) to tell Isabelle which of the theories to load (and in which
+order). Go back to the parent directory (where the IsaMakefile is) and
+type isabelle make. Isabelle should then process your theories and
+tell you where to find the finished document. For more information on
+generating documents see the Isabelle Tutorial, Chapter 4.
 
 * Data types
 
 #+BEGIN_EXAMPLE
-datatype 'a lst = Nil | Cons 'a "'a lst"
+: datatype 'a lst = Nil | Cons 'a "'a lst"
 #+END_EXAMPLE
 
 * Functions
 
-  Individual equations can be named in order to invoke them within proofs later.
+Individual equations can be named in order to invoke them within proofs later.
 
 #+BEGIN_EXAMPLE
 fun append :: "'a lst \<Rightarrow> 'a lst \<Rightarrow> 'a lst" where
@@ -30,61 +64,65 @@ fun append :: "'a lst \<Rightarrow> 'a lst \<Rightarrow> 'a lst" where
 #+END_EXAMPLE
 
 * Definitions
-  Definitions are intended for abstract concepts. Define them like this
+Definitions are intended for abstract concepts. Define them like this
 
 #+BEGIN_EXAMPLE
 definition foo :: "int \<Rightarrow> int" where
 "foo x = x + x"
 #+END_EXAMPLE
 
-  They can be expanded with
+They can be expanded with
 
 #+BEGIN_EXAMPLE
 apply(simp add: definition_name_def)
 #+END_EXAMPLE
 
-  for some definition definition_name.
+for some definition definition_name.
 
-  Simplification can be temporarily undone by
+Simplification can be temporarily undone by
 
 #+BEGIN_EXAMPLE
 apply(simp del: rule_name)
 #+END_EXAMPLE
 
 * Induction
-  If function takes several arguments then induction rule is applied like this:
+If a function takes several arguments then induction rule is applied like this:
 
 #+BEGIN_EXAMPLE
 apply(induction x1, x2, ..., xN rule: f.induct)
 #+END_EXAMPLE
 
 * Expanding case expressions
-  In order to expand case expressions, special rules must be used.
+In order to expand case expressions, special rules must be used.
 
-  | Purpose              | Rule type                                               |
-  | For tuples           | apply(auto simp add: split_def)                         |
-  | For let expressions  | apply(auto simp add: Let_def)                           |
-  | For other data types | apply(auto split: <type name>.split), e.g. option.split |
-  |                      |                                                         |
+|----------------------+---------------------------------------------------------|
+| Purpose              | Rule type                                               |
+|----------------------+---------------------------------------------------------|
+| For tuples           | apply(auto simp add: split_def)                         |
+| For let expressions  | apply(auto simp add: Let_def)                           |
+| For other data types | apply(auto split: <type name>.split), e.g. option.split |
+|                      |                                                         |
 
 * Special symbols
-  Composition - \circ
-  Pretty tuples - \times
+Composition - \circ - \<circ>
+Pretty tuples - \times - \<times>.
+Definitions - ≡ - \<equiv>
 
 * Proof methods
 ** auto
 ** simp
 ** simp_all
 ** fastforce, force
-   May be confused by complicated quantifiers.
+May be confused by complicated quantifiers.
 ** blast - good for logical formulas, esp. first-order ones, sets and relations
 ** sledgehammer
-   Queries external SMT solver for a proof that can be checked by Isabelle.
-   Isabelle does not just trust external tools.
+Queries external SMT solver for a proof that can be checked by Isabelle.
+Isabelle does not just trust external tools, so the solver has to produce
+a proof that will subsequently be checked by Isabelle.
 ** rule
-   Substitute rule in the goal with rule's premises.
+Substitute rule in the goal with rule's premises.
 
-   apply(rule) - try to apply suitable logical rule to current goal, e.g.
-   decompose conjunction into standalone goals
+apply(rule) - try to apply suitable logical rule to current goal, e.g.
+decompose conjunction into standalone goals
 
-   apply(rule xyz) - apply rule xyz
+apply(rule xyz) - apply rule xyz
