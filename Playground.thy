@@ -38,7 +38,7 @@ datatype 'a lst = Nil | Cons "'a" "'a lst"
 thm lst.rec
 thm lst.rec[no_vars]
 print_theorems
-  
+
 fun app :: "'a lst \<Rightarrow> 'a lst \<Rightarrow> 'a lst" where
 "app Nil         ys = ys" |
 "app (Cons x xs) ys = Cons x (app xs ys)"
@@ -111,7 +111,7 @@ value "rev (rev xs)"
 fun head :: "'a lst \<Rightarrow> 'a" where
 "head (Cons x xs) = x"
 
-value "head Nil" 
+value "head Nil"
 
 (* Exercises 2.2 *)
 
@@ -436,7 +436,7 @@ fun itrev :: "'a list \<Rightarrow> 'a list" where
 
 (* Cannot prove weaker statement, "itrev_helper xs [] = rev xs", by induction - IH would be too
    weak to prove the step.
-   
+
    Can, and sometimes must, further strengthen IH by universally quantifying over free variables
    that we're not inducting over.
  *)
@@ -449,7 +449,7 @@ lemma itrev_helper_reverses_alt : "\<forall> ys. itrev_helper xs ys = rev xs @ y
 apply(induction xs)
 apply(auto)
 done
-  
+
 theorem itrev_reverses : "itrev xs = rev xs"
 apply(auto)
 done
@@ -476,13 +476,13 @@ done
 
    NB only real simplifications should become automatic rules - e.g.
    distributivity should remain manual.
-   
+
    Simplification rules can be conditional, e.g. p(n) \<Rightarrow> f(n) = g(n).
    This way f(n) will be substituted by g(n) only when p(n) is provable.
-   
+
    Right-hand side should always simpler than left-hand side to ensure termination.
    Termination check is undecidable and cannot be performed automatically.
-   
+
    For conditional rules the precondition is proved first, therefore it must be simpler
    than rhs.
  *)
@@ -492,7 +492,7 @@ done
      apply(simp add: definition_name_def)
 
    for some definition definition_name.
-   
+
    Simplification can be temporarily undone by
 
      apply(simp del: rule_name)
@@ -610,5 +610,62 @@ apply(induction exp (*arbitrary: v*))
 apply(auto)
 (*apply(simp add: algebra_simps)*)
 done
+
+
+
+notepad
+begin
+  fix A B :: bool
+  have "A \<and> B \<longrightarrow> B \<and> A"
+  proof(rule impI)
+    assume it: "A \<and> B"
+    show "B \<and> A"
+    proof(rule conjI)
+      from it show B by(rule conjunct2)
+      from it show A by(rule conjunct1)
+    qed
+  qed
+end
+
+(* print_theorems rule impI*)
+thm impI conjunct1 conjunct2
+
+value "1 # 2 # (3 :: int) # []"
+
+definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl "[+]" 35) where
+  "xor x y \<equiv> x \<and> \<not> y \<or> \<not> x \<and> y"
+
+class number =
+  fixes add     :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<oplus>" 70)
+    and add_inv :: "'a \<Rightarrow> 'a"       ("\<ominus>_" 20)
+    and add_id  :: "'a"             ("\<zero>")
+
+    and mul     :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<otimes>" 60)
+    and mul_inv :: "'a \<Rightarrow> 'a"       ("_\<^sup>-\<^sup>1" 20)
+    and mul_id  :: "'a"             ("\<one>")
+
+    and is_pos  :: "'a \<Rightarrow> bool"     ("_ \<in> \<P>" 20)
+
+  assumes add_assoc:          "(x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"
+      and add_identity:       "x \<oplus> \<zero> = x"
+      and add_inverse:        "x \<oplus> (\<ominus> x) = \<zero>"
+      and add_commutativity:  "x \<oplus> y = y \<oplus> x"
+
+      and mul_assoc:          "(x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
+      and mul_identity:       "x \<otimes> \<one> = x"
+      and mul_inverse:        "x \<otimes> (x\<^sup>-\<^sup>1) = \<one>"
+      and mul_commutativity:  "x \<otimes> y = y \<otimes> x"
+
+      and distributive_law:   "x \<otimes> (y \<oplus> z) = x \<otimes> y \<oplus> x \<otimes> z"
+
+      and pos_trichotomy:        "x = \<zero> [+] (x \<in> \<P>) [+] \<not> (x \<in> \<P>)"
+      and pos_closure_under_add: "(x \<in> \<P>) \<Longrightarrow> (y \<in> \<P>) \<Longrightarrow> (x \<oplus> y \<in> \<P>)"
+      and pos_closure_under_mul: "(x \<in> \<P>) \<Longrightarrow> (y \<in> \<P>) \<Longrightarrow> (x \<otimes> y \<in> \<P>)"
+
+begin
+end
+
+lemma nonzero_either_pos_or_neg: "x \<noteq> \<zero> \<Longrightarrow> (x \<in> \<P>) [+] \<not> (x \<in> \<P>)"
+  sorry
 
 end

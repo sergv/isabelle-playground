@@ -104,25 +104,84 @@ In order to expand case expressions, special rules must be used.
 |                      |                                                         |
 
 * Special symbols
-Composition - \circ - \<circ>
-Pretty tuples - \times - \<times>.
-Definitions - ≡ - \<equiv>
+|---------------+-----------------+-------------|
+| Symbol        | Unicode outlook | Ascii input |
+|---------------+-----------------+-------------|
+| Composition   | \circ           | \<circ>     |
+| Pretty tuples | \times          | \<times>    |
+| Definitions   | ≡               | \<equiv>    |
+| Lambda        | λ               | %           |
+| Negation      | ¬               | ~           |
+| Not equals    | ≠               | ~=          |
+|---------------+-----------------+-------------|
+
+* On the distinction between ⟹ (==>) and ⟶ (-–>)
+The implication ⟹ (==>) is part of the Isabelle framework. It
+structures theorems and proof states, separating assumptions from
+conclusions. The implication ⟶ (-–>) is part of the logic HOL and can
+occur inside the formulas that make up the assumptions and conclusion.
+Theorems should be of the form ~[[ A 1 ; . . .; A n ]] ⟹ A~, not
+~A 1 ∧ . . . ∧ A n ⟶ A~. Both are logically equivalent but the first one
+works better when using the theorem in further proofs.
+
+** Metalogic (Pure):
++ Type prop
++ Constants:
+  - Λ   :: (’a ⇒ prop) ⇒ prop
+  - ⟹ :: prop ⇒ prop ⇒ prop
+  - ≡   :: ’a ⇒ ’a ⇒ prop
+** Object logic (HOL):
+- Type bool
+- Constants:
+  + Trueprop   :: bool ⇒ prop (implicit)
+  + ∀, ∃       :: (’a ⇒ bool) ⇒ bool
+  + ⟶, ∧, ∨, … :: bool ⇒ bool ⇒ bool
+  + =          :: ’a ⇒ ’a ⇒ bool
+
+* Rule manipulation - of, OF
+
+
+#+BEGIN_EXAMPLE
+conjI[OF refl[of "a"] refl[of "b"]]
+#+END_EXAMPLE
+
+Produces theorem
+
+#+BEGIN_EXAMPLE
+a = a Λ b = b
+#+END_EXAMPLE
+
+
+
+* Proof commands
+- ~oops~  - gives up the current proof attempt
+- ~sorry~ - “completes” any proof. It makes top-down development possible: assume lemma first, prove it later.
+
+* Isabelle/HOL proof methods
+** ~rule~ - generic Natural Deduction (with HO unification)
+** ~cases~ - elimination, syntactic representation of datatypes,inversion of inductive sets and predicates
+** ~induct~, ~coinduct~ - induction and coinduction of types, sets,predicates
+** ~simp~ - equational reasoning by the Simplifier (HO rewriting),with possibilities for add-on tools
+** ~fast~, ~blast~ - classical reasoning (tableau)
+** ~auto~, ~force~ - combined simplification and classical reasoning
+** ~arith~, ~presburger~ - specific theories
+** ~smt~ - Z3 with proof reconstruction
 
 * Proof methods
-** auto
-** simp
-** simp_all
-** fastforce, force
+** ~auto~
+** ~simp~
+** ~simp_all~
+** ~fastforce~, ~force~
 May be confused by complicated quantifiers.
-** blast - good for logical formulas, esp. first-order ones, sets and relations
-** sledgehammer
+** ~blast~ - good for logical formulas, esp. first-order ones, sets and relations
+** ~sledgehammer~
 Queries external SMT solver for a proof that can be checked by Isabelle.
 Isabelle does not just trust external tools, so the solver has to produce
 a proof that will subsequently be checked by Isabelle.
-** rule
+** ~rule~
 Substitute rule in the goal with rule's premises.
 
-apply(rule) - try to apply suitable logical rule to current goal, e.g.
+~apply(rule)~ - try to apply suitable logical rule to current goal, e.g.
 decompose conjunction into standalone goals
 
-apply(rule xyz) - apply rule xyz
+~apply(rule xyz)~ - apply rule xyz
