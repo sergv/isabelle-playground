@@ -113,6 +113,8 @@ fun head :: "'a lst \<Rightarrow> 'a" where
 
 value "head Nil"
 
+value "f \<circ> g"
+
 (* Exercises 2.2 *)
 
 (* 2.1 *)
@@ -187,6 +189,10 @@ fun count :: "'a \<Rightarrow> 'a list \<Rightarrow> nat" where
 value "equal 1 1 :: bool"
 value "(1 :: nat) = 1"
 value "(\<le>)"
+(* value "op \<le>" *)
+
+value "equal"
+value "op = x y"
 
 theorem count_lt_length : "count x xs \<le> length xs"
 apply(induction xs)
@@ -457,7 +463,7 @@ done
 (* Exercise 2.9 *)
 
 fun itadd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
-"itadd 0        m = m" |
+"itadd 0       m = m" |
 "itadd (Suc n) m = itadd n (Suc m)"
 
 theorem itadd_sums : "itadd n m = add n m"

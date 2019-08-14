@@ -140,7 +140,6 @@ works better when using the theorem in further proofs.
 
 * Rule manipulation - of, OF
 
-
 #+BEGIN_EXAMPLE
 conjI[OF refl[of "a"] refl[of "b"]]
 #+END_EXAMPLE
@@ -159,9 +158,9 @@ a = a Λ b = b
 
 * Isabelle/HOL proof methods
 ** ~rule~ - generic Natural Deduction (with HO unification)
-** ~cases~ - elimination, syntactic representation of datatypes,inversion of inductive sets and predicates
+** ~cases~ - elimination, syntactic representation of datatypes, inversion of inductive sets and predicates
 ** ~induct~, ~coinduct~ - induction and coinduction of types, sets,predicates
-** ~simp~ - equational reasoning by the Simplifier (HO rewriting),with possibilities for add-on tools
+** ~simp~ - equational reasoning by the Simplifier (HO rewriting), with possibilities for add-on tools
 ** ~fast~, ~blast~ - classical reasoning (tableau)
 ** ~auto~, ~force~ - combined simplification and classical reasoning
 ** ~arith~, ~presburger~ - specific theories
