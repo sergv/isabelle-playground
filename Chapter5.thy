@@ -123,6 +123,8 @@ proof -
   show ?thesis using assms a_shape by (auto simp add: dvd_def)
 qed
 
+
+
 lemma "p \<longrightarrow> (p \<and> p)"
 proof (rule impI)
   assume 1: p
@@ -190,7 +192,7 @@ proof -
   have "T x y \<or> T y x" using T by auto
   thus ?thesis
   proof (rule disjE)
-    assume txy_assm: "T x y"
+    assume "T x y"
     thus "T x y" .
   next
     assume tyx_assm: "T y x"
@@ -205,8 +207,53 @@ subsection \<open>Exercise 5.2\<close>
 
 thm disjI1 disjI2 someI
 
-thm List.length_take List.length_drop
+thm List.length_take List.length_drop dvd_def semiring_parity_class.evenE
 
+lemma
+  " (\<exists> ys zs. xs = ys @ zs \<and> length ys = length zs)
+  \<or> (\<exists> ys zs. xs = ys @ zs \<and> length ys = length zs + 1)"
+proof cases
+  assume xs_len_even: "2 dvd length xs"
+  show ?thesis
+  proof (rule disjI1)
+    show "\<exists> ys zs. xs = ys @ zs \<and> length ys = length zs"
+    proof
+      fix ys
+      show "\<exists> zs. xs = ys @ zs \<and> length ys = length zs"
+      proof
+        fix zs
+        show "xs = ys @ zs \<and> length ys = length zs"
+        proof -
+          from xs_len_even have "\<exists> k. length xs = k * 2" unfolding dvd_def by auto
+          then obtain k where k_def: "length xs = k * 2" ..
+          assume ys_def: "ys = take k xs"
+          assume zs_def: "zs = drop k xs"
+          have "xs = ys @ zs" using ys_def zs_def by simp
+          moreover have "length ys = length zs" using ys_def zs_def k_def by auto
+          ultimately show "xs = ys @ zs \<and> length ys = length zs" ..
+        qed
+      qed
+    qed
+  qed
+next
+  assume xs_len_odd: "\<not> (2 dvd length xs)"
+  show ?thesis
+  proof (rule disjI2)
+    show "\<exists> ys zs. xs = ys @ zs \<and> length ys = length zs + 1"
+    proof
+      show "\<exists> zs. xs = ys @ zs \<and> length ys = length zs + 1"
+      proof
+        fix ys zs
+        show "xs = ys @ zs \<and> length ys = length zs + 1" sorry
+      qed
+    qed
+  qed
+qed
+
+
+
+
+(*
 lemma length_of_take: "n \<le> length xs \<Longrightarrow> length (take n xs) = n"
   apply(induction n)
   apply(simp)
@@ -219,14 +266,19 @@ lemma length_of_drop: "n \<le> length xs \<Longrightarrow> length (drop n xs) = 
   apply(simp)
 done
 
+lemma x_div_2_smaller_than_x: "x div 2 \<le> (x :: nat)"
+  apply(auto)
+done
+
 lemma min_of_x_and_x_div_2: "min (x :: nat) (x div 2) = x div 2"
   apply(induction x)
   apply(simp)
   apply(simp)
 done
+*)
 
 (*
-lemma x_minus_x_div_2: "x mod 2 = 0 \<Longrightarrow> (x :: nat) - x div 2 = x div 2"
+lemma x_minus_x_div_2: "((x :: nat) - x div 2) = x div 2 \<or> ((x :: nat) - x div 2) = x div 2 + 1"
   apply(induction x)
   apply(simp)
   apply(simp)
@@ -235,7 +287,7 @@ done
 
 thm List.length_take List.length_drop
 
-lemma
+(* lemma
   " (\<exists> ys zs. xs = ys @ zs \<and> length ys = length zs)
   \<or> (\<exists> ys zs. xs = ys @ zs \<and> length ys = length zs + 1)"
 proof (rule disjI1)
@@ -244,12 +296,16 @@ proof (rule disjI1)
   assume as_def: "as = take len xs"
   assume bs_def: "bs = drop len xs"
 
-  have "xs = as @ bs" using as_def bs_def by simp
-  hence "length as = len" using as_def length_of_take by (simp remove: List.length_take)
+  have xs_ok: "xs = as @ bs" using as_def bs_def by simp
+  have "len \<le> length xs" using len_def x_div_2_smaller_than_x by simp
+  hence as_len: "length as = len" using as_def length_of_take by (simp del: List.length_take)
+  (*have "length xs = len + len" using as_def bs_def xs_ok by*)
+  have bs_len: "length bs = len" using bs_def len_def by (simp)
   (*also have "length as = length bs" using as_def bs_def length_of_take length_of_drop len_def by simp*)
    (*using as_def bs_def length_of_take by simp*)
   
 qed
+ *)
 
 (* 
 lemma
