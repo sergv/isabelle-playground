@@ -12,8 +12,10 @@
 * Useful declarations
 - ~declare [[names_short]]~ - do not quantify ambiguous names when printing
 - ~using [[simp_trace_new mode=full]]~ - use within proofs to see what ~simp~ proof tactic did
+- ~simp (no_asm)~, ~simp (no_asm_simp)~ - don’t simplify assumptions
 
 * Toplevel commands
+- ~print_methods~ - show all currently known methods like ~simp~, ~auto~, etc and what they do
 - ~print_theorems~ - show all currently known theorems
 - ~thm lst.rec~ print a theorem
 - ~thm lst.rec[no_vars]~ print a theorem without metavariables
@@ -107,12 +109,13 @@ In order to expand case expressions, special rules must be used.
 |---------------+-----------------+-------------|
 | Symbol        | Unicode outlook | Ascii input |
 |---------------+-----------------+-------------|
-| Composition   | \circ           | \<circ>     |
-| Pretty tuples | \times          | \<times>    |
+| Composition   | \circ               | \<circ>     |
+| Pretty tuples | \times               | \<times>    |
 | Definitions   | ≡               | \<equiv>    |
 | Lambda        | λ               | %           |
 | Negation      | ¬               | ~           |
 | Not equals    | ≠               | ~=          |
+| Reals         |                 | \<real>     |
 |---------------+-----------------+-------------|
 
 * On the distinction between ⟹ (==>) and ⟶ (-–>)
@@ -133,10 +136,10 @@ works better when using the theorem in further proofs.
 ** Object logic (HOL):
 - Type bool
 - Constants:
-  + Trueprop   :: bool ⇒ prop (implicit)
-  + ∀, ∃       :: (’a ⇒ bool) ⇒ bool
+  + Trueprop     :: bool ⇒ prop (implicit)
+  + ∀, ∃         :: (’a ⇒ bool) ⇒ bool
   + ⟶, ∧, ∨, … :: bool ⇒ bool ⇒ bool
-  + =          :: ’a ⇒ ’a ⇒ bool
+  + =            :: ’a ⇒ ’a ⇒ bool
 
 * Rule manipulation - of, OF
 
@@ -150,6 +153,20 @@ Produces theorem
 a = a Λ b = b
 #+END_EXAMPLE
 
+* Rule manipulation - reverse
+
+Having rule ~X~
+#+BEGIN_EXAMPLE
+X : A == B
+#+END_EXAMPLE
+
+Applying ~X[symmetric]~ will produce
+
+#+BEGIN_EXAMPLE
+X : B == A
+#+END_EXAMPLE
+
+thus flipping the equivalence.
 
 
 * Proof commands
@@ -159,7 +176,7 @@ a = a Λ b = b
 * Isabelle/HOL proof methods
 ** ~rule~ - generic Natural Deduction (with HO unification)
 ** ~cases~ - elimination, syntactic representation of datatypes, inversion of inductive sets and predicates
-** ~induct~, ~coinduct~ - induction and coinduction of types, sets,predicates
+** ~induct~, ~coinduct~ - induction and coinduction of types, sets, predicates
 ** ~simp~ - equational reasoning by the Simplifier (HO rewriting), with possibilities for add-on tools
 ** ~fast~, ~blast~ - classical reasoning (tableau)
 ** ~auto~, ~force~ - combined simplification and classical reasoning
@@ -168,8 +185,8 @@ a = a Λ b = b
 
 * Proof methods
 ** ~auto~
-** ~simp~
-** ~simp_all~
+** ~simp~ - simplify toplevel goal
+** ~simp_all~ - simplify all goals
 ** ~fastforce~, ~force~
 May be confused by complicated quantifiers.
 ** ~blast~ - good for logical formulas, esp. first-order ones, sets and relations
@@ -184,3 +201,8 @@ Substitute rule in the goal with rule's premises.
 decompose conjunction into standalone goals
 
 ~apply(rule xyz)~ - apply rule xyz
+
+* Useful rewrite rules to supply to ~simp~
+- ~add_ac~, ~mult_ac~ - associative & commutative properties of additiona and multiplication
+- ~algebra_simps~ - for multiplying out polynomials
+- ~field_simps~, ~divide_simps~ - for multiplying out denominators
