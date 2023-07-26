@@ -40,7 +40,7 @@ proof
 qed
 
 text \<open>
-Linear flow of proof facts is to be preferred to labels
+Linear flow of proof facts is to be preferred to labels.
   this - proposition proved in the previous step
 \<close>
 
@@ -154,7 +154,6 @@ proof (rule impI)
 qed
 
 
-
 definition even :: "nat => bool" where
   "even n \<equiv> \<exists> k. n = 2 * k"
 
@@ -206,6 +205,7 @@ qed
 subsection \<open>Exercise 5.2\<close>
 
 thm disjI1 disjI2 someI
+thm allI allE allE'
 
 thm List.length_take List.length_drop dvd_def semiring_parity_class.evenE
 

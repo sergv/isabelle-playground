@@ -560,7 +560,7 @@ fun poly_shift :: "nat \<Rightarrow> polynomial \<Rightarrow> polynomial" where
 "poly_shift (Suc n) xs = poly_shift n (0 # xs)"
 
 fun poly_scale :: "int \<Rightarrow> polynomial \<Rightarrow> polynomial" where
-"poly_scale c xs = map (( *) c) xs"
+"poly_scale c xs = map ((*) c) xs"
 
 fun poly_mul :: "polynomial \<Rightarrow> nat \<Rightarrow> polynomial \<Rightarrow> polynomial" where
 "poly_mul []       _ _  = []" |
@@ -584,7 +584,7 @@ apply(induction xs ys arbitrary: n rule: poly_add.induct)
 apply(auto simp add: algebra_simps)
 done
 
-lemma poly_scale_scales [simp] : "evalp_helper (map (( *) c) xs) v n = c * evalp_helper xs v n"
+lemma poly_scale_scales [simp] : "evalp_helper (map ((*) c) xs) v n = c * evalp_helper xs v n"
 apply(induction xs arbitrary: n)
 apply(auto simp add: algebra_simps)
 done
@@ -673,5 +673,150 @@ end
 
 lemma nonzero_either_pos_or_neg: "x \<noteq> \<zero> \<Longrightarrow> (x \<in> \<P>) [+] \<not> (x \<in> \<P>)"
   sorry
+
+print_rules
+print_methods
+thm disjE
+print_statement exE
+print_statement disjE
+print_statement disjE[where Q = disjI1]
+print_statement conjE
+print_statement ccontr
+
+print_statement conjI
+print_statement disjI1
+print_statement nat.induct
+
+print_statement HOL.contrapos_nn
+print_statement HOL.contrapos_np
+print_statement HOL.contrapos_pn
+print_statement HOL.contrapos_pp
+
+thm notI ccontr classical
+print_statement notI
+print_statement notE
+print_statement ccontr
+print_statement classical
+
+(*
+lemma
+  assumes "P \<Longrightarrow> Q"
+  assumes "\<not> Q"
+  shows "\<not> P"
+*)
+
+
+lemma
+  assumes A1 and A2 (* assumptions *)
+  obtains
+    (case1) x y where B\<^sub>1 x y and C\<^sub>1 x y
+  | (case2) x y where B\<^sub>2 x y and C\<^sub>2 x y
+  oops
+
+(*
+lemma tertium_non_datur:
+  obtains
+     (T) x | (F) (\<not> x)
+    (*| \<not> A*)
+  by blast
+*)
+
+value "10"
+
+lemma "2 = (1 :: nat) + (1 :: nat)" using [[simp_trace_new mode=full]] by simp
+
+thm field_simps
+thm list.split
+thm mp
+thm disjE
+thm exI
+thm exE
+thm allI
+thm allE
+
+lemma mp_apply: "P \<longrightarrow> Q \<Longrightarrow> P \<Longrightarrow> (P \<and> Q)"
+apply(rule conjI)
+apply(assumption)
+apply(rule mp)
+apply(assumption)
+apply(assumption)
+done
+
+lemma mp_:
+assumes impl: "P \<longrightarrow> Q"
+assumes premise: "P"
+shows   goal: "P \<and> Q"
+proof (rule conjI)
+from premise show "P" .
+then show "Q" using mp impl by simp
+qed
+
+(* lemma test_assoc: "plus (plus a b) c = plus a (plus b c)" *)
+
+lemma "P \<or> P \<longrightarrow> P"
+apply(rule impI)
+apply(erule disjE)
+apply assumption+
+done
+
+lemma "(\<exists> x. P (f x) \<and> Q x) \<Longrightarrow> (\<exists> x. P x)"
+apply (erule exE)
+apply (erule conjE)
+apply (rule exI)
+apply assumption
+done
+
+lemma "(k dvd (n + k)) = (k dvd (n :: nat))"
+proof (simp only: dvd_def, safe)
+  fix m
+  assume "n + k = k * m"
+  then have "n = k * (m - 1)" by (simp add: right_diff_distrib')
+  thus "\<exists> m'. n = k * m'" by blast
+next
+  fix m
+  assume \<open>n = k * m\<close>
+  then have "k * m + k = k * (m + 1)" by auto
+  then show "\<exists> m'. k * m + k = k * m'" by blast
+qed
+
+thm abs_mult[symmetric, of a b]
+
+lemma abs_m_1:
+  fixes m n :: int
+  assumes mn: "abs (m * n) = 1"
+  shows       "abs m = 1"
+proof -
+  from mn have mnonzero: "m \<noteq> 0" by auto
+  from mn have nnonzero: "n \<noteq> 0" by auto
+  have "\<not> (abs m \<ge> 2)"
+    proof
+      assume "2 \<le> abs m"
+      hence "2 * abs n \<le> abs m * abs n" by (simp add: mult_mono) (* NB Can't put "mult_mono" under using! *)
+      hence "2 * abs n \<le> abs (m * n)" by simp
+      hence "2 * abs n \<le> 1" using mn by simp
+      thus "False" using nnonzero by auto
+    qed
+  thus "abs m = 1" using mnonzero by auto
+qed
+
+(* Using calculations *)
+lemma abs_m_1':
+  fixes m n :: int
+  assumes mn: "abs (m * n) = 1"
+  shows       "abs m = 1"
+proof -
+  from mn have mnonzero: "m \<noteq> 0" by auto
+  from mn have nnonzero: "n \<noteq> 0" by auto
+  have "\<not> (abs m \<ge> 2)"
+    proof
+      assume "2 \<le> abs m"
+      then have "2 * abs n \<le> abs m * abs n" by (simp add: mult_mono) (* NB Can't put "mult_mono" under using! *)
+      also have "... = abs (m * n)" by (simp add: abs_mult) (* ... refers to the previous right-hand side *)
+      also have "... = 1" using mn by simp
+      finally have "2 * abs n \<le> 1" . (* "." denotes ttrivial proof *)
+      thus "False" using nnonzero by auto
+    qed
+  thus "abs m = 1" using mnonzero by auto
+qed
 
 end

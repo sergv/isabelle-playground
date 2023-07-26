@@ -174,10 +174,20 @@ thus flipping the equivalence.
 - ~sorry~ - “completes” any proof. It makes top-down development possible: assume lemma first, prove it later.
 
 * Isabelle/HOL proof methods
-** ~rule~ - generic Natural Deduction (with HO unification)
+** ~XXX+~ - apply proof method ~XXX~ multiple times
+** ~assumption~ - use assumptionsn
+** ~rule~ - introduction rule on goal; generic Natural Deduction (with HO unification)
+** ~erule~ - elimination rule on assumption, e.g. ~disjE~; fakes Sequent Calculus in Natural Deduction
 ** ~cases~ - elimination, syntactic representation of datatypes, inversion of inductive sets and predicates
 ** ~induct~, ~coinduct~ - induction and coinduction of types, sets, predicates
+*** Parameters:
+- ~arbitrary~
 ** ~simp~ - equational reasoning by the Simplifier (HO rewriting), with possibilities for add-on tools
+*** Parameters:
+- ~add~
+- ~del~
+- ~only~ - use only this rule(s)
+** ~simp_all~ - simplify all goals
 ** ~fast~, ~blast~ - classical reasoning (tableau)
 ** ~auto~, ~force~ - combined simplification and classical reasoning
 ** ~arith~, ~presburger~ - specific theories
