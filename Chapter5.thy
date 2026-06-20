@@ -30,6 +30,8 @@ thm allE
 thm notI
 thm someI
 
+thm surj_def
+
 lemma no_surj_for_powerset: "\<not> surj (f :: 'a \<Rightarrow> 'a set)"
 proof
   assume 0: "surj f"
@@ -230,7 +232,8 @@ proof cases
           assume zs_def: "zs = drop k xs"
           have "xs = ys @ zs" using ys_def zs_def by simp
           moreover have "length ys = length zs" using ys_def zs_def k_def by auto
-          ultimately show "xs = ys @ zs \<and> length ys = length zs" ..
+          ultimately have "xs = ys @ zs \<and> length ys = length zs" ..
+          thus ?thesis sorry
         qed
       qed
     qed
@@ -303,11 +306,11 @@ proof (rule disjI1)
   have bs_len: "length bs = len" using bs_def len_def by (simp)
   (*also have "length as = length bs" using as_def bs_def length_of_take length_of_drop len_def by simp*)
    (*using as_def bs_def length_of_take by simp*)
-  
+
 qed
  *)
 
-(* 
+(*
 lemma
   " (\<exists> ys zs. xs = ys @ zs \<and> length ys = length zs)
   \<or> (\<exists> ys zs. xs = ys @ zs \<and> length ys = length zs + 1)"

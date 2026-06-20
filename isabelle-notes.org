@@ -52,7 +52,7 @@ generating documents see the Isabelle Tutorial, Chapter 4.
 * Data types
 
 #+BEGIN_EXAMPLE
-: datatype 'a lst = Nil | Cons 'a "'a lst"
+datatype 'a lst = Nil | Cons 'a "'a lst"
 #+END_EXAMPLE
 
 * Functions
@@ -106,17 +106,19 @@ In order to expand case expressions, special rules must be used.
 |                      |                                                         |
 
 * Special symbols
-|---------------+-----------------+-------------|
-| Symbol        | Unicode outlook | Ascii input |
-|---------------+-----------------+-------------|
-| Composition   | \circ               | \<circ>     |
-| Pretty tuples | \times               | \<times>    |
-| Definitions   | ≡               | \<equiv>    |
-| Lambda        | λ               | %           |
-| Negation      | ¬               | ~           |
-| Not equals    | ≠               | ~=          |
-| Reals         |                 | \<real>     |
-|---------------+-----------------+-------------|
+|------------------+-----------------+-------------|
+| Symbol           | Unicode outlook | Ascii input |
+|------------------+-----------------+-------------|
+| Composition      | \circ               | \<circ>     |
+| Pretty tuples    | \times               | \<times>    |
+| Definitions      | ≡               | \<equiv>    |
+| Lambda           | λ               | %           |
+| Negation         | ¬               | ~           |
+| Not equals       | ≠               | ~=          |
+| Reals            |                 | \<real>     |
+| Set union        | ∪ ⋃            | \<union>    |
+| Set intersection | ∩ ⋂            | \<inter>    |
+|------------------+-----------------+-------------|
 
 * On the distinction between ⟹ (==>) and ⟶ (-–>)
 The implication ⟹ (==>) is part of the Isabelle framework. It
@@ -195,8 +197,13 @@ thus flipping the equivalence.
 
 * Proof methods
 ** ~auto~
+*** Modifiers
+- ~simp add:~
+- ~simp only:~
+- ~intros:~ - specify introduction rules for backchain reasoning (i.e. reasoning backwards from the goal)
 ** ~simp~ - simplify toplevel goal
 ** ~simp_all~ - simplify all goals
+** ~arith~ - arithmetic, logical sign and quantifiers
 ** ~fastforce~, ~force~
 May be confused by complicated quantifiers.
 ** ~blast~ - good for logical formulas, esp. first-order ones, sets and relations

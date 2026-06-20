@@ -11,6 +11,8 @@ proof
 qed
 *)
 
+text\<open>hello world\<close>
+
 theorem Drinker's_Principle: "\<exists>x. (drunk x \<longrightarrow> (\<forall>y. drunk y))"
 proof cases
   assume "\<forall>x. drunk x"
@@ -27,7 +29,13 @@ next
   qed
   then show ?thesis ..
 qed
-
+(*   foobar
+  \<not>
+  \<not>
+  \<emptyset>
+\<Longrightarrow>
+  λ\<lambda>.x
+  λ  *)
 thm exI exI[of _ XXX]
 thm allI
 
@@ -36,7 +44,8 @@ lemma quantifiers_test:
   shows   "\<forall> y. \<exists> x. R x y"
 proof
   obtain x where p: "\<forall> y. R x y" using assms .. (* \<exists>-elimination *)
-  fix y have "R x y" using p ..                 (* \<forall>-elimination *)
+  fix y
+  have "R x y" using p ..                  (* \<forall>-elimination *)
   then show "\<exists> x. R x y" ..                     (* \<exists>-introduction *)
 qed
 
@@ -51,7 +60,7 @@ proof
   fix z
   have a: "A z" using prop_a ..
   have b: "B z" using prop_b ..
-  from a b show "A z \<and> B z" .. (* NB show the formula *under* the quantifier, the quantifer in thesis became part of proof context *)
+  from a b show "A z \<and> B z" .. (* NB show the formula *under* the quantifier, the quantifier in thesis became part of proof context *)
 qed
 
 lemma de_Morgan1:
@@ -103,6 +112,14 @@ thm double_negation double_negation[of "\<exists> x. \<not> (P x)"] mp
 (*thm mp[of "\<not> (\<not> (\<exists> x. \<not> (P x)))" "\<exists> x. \<not> (P x)"] impI[THEN double_negation[of "\<exists> x. \<not> (P x)"]]
 thm mp[of "\<not> (\<not> (\<exists> x. \<not> (P x)))" "\<exists> x. \<not> (P x)"][impI[THEN double_negation[of "\<exists> x. \<not> (P x)"]]]*)
 
+(*
+\<Sigma>
+xx
+\<Sum>
+x \<and> x
+x \<And> x
+*)
+
 lemma meta_mp:
   assumes p:  "P"
   and     pq: "P \<Longrightarrow> Q"
@@ -125,8 +142,11 @@ proof
 *)
 
 thm double_negation double_negation[of "P x"]
+(*
+\<nexists>
+\<exists> *)
 
-lemma de_Morgan3:
+(* lemma de_Morgan3:
   assumes "\<not> (\<forall> x. P x)"
   shows   "\<exists> x. \<not> (P x)"
 proof(cases "\<not> (\<exists> x. \<not> (P x))")
@@ -143,8 +163,30 @@ next
     have not_not_x: "\<not> (\<not> (P x))" using not_not_p ..
     show "P x" using double_negation not_not_x .
   qed
-  then show ?thesis using assms by contradiction
+  then show ?thesis using assms(1) by contradiction
+qed *)
+
+lemma de_Morgan3:
+  assumes "\<not> (\<forall> x. P x)"
+  shows   "\<exists> x. \<not> (P x)"
+proof(cases \<open>(\<exists> x. \<not> (P x))\<close>)
+  case True
+  assume ex: "\<exists> x. \<not> (P x)"
+  then show ?thesis using ex ..
+next
+  case False
+  assume not_ex: "\<not> (\<exists> x. \<not> (P x))"
+  have not_not_p: "\<forall> x. \<not> (\<not> (P x))" using de_Morgan1[of "\<lambda> x. \<not> (P x)"] not_ex .
+  have "\<forall> x. P x"
+  proof
+    fix x
+    have not_not_x: "\<not> (\<not> (P x))" using not_not_p ..
+    show "P x" using double_negation not_not_x .
+  qed
+  then show ?thesis using assms(1) by contradiction
 qed
+
+
 
 theorem drinker_paradox: "\<exists> x. (drunk x \<longrightarrow> (\<forall> y. drunk y))"
 proof(cases "\<forall> z. drunk z")
@@ -158,7 +200,7 @@ next
   have "\<exists> z. \<not> (drunk z)" using de_Morgan3 not_all_drunk .
   then obtain zz where "\<not> (drunk zz)" ..
   then have "drunk zz \<longrightarrow> (\<forall> y. drunk y)" by simp
-  then show ?thesis by (simp only: exI)
+  then show ?thesis by (rule exI)
 qed
 
 (*

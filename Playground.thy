@@ -188,7 +188,7 @@ fun count :: "'a \<Rightarrow> 'a list \<Rightarrow> nat" where
 
 value "equal 1 1 :: bool"
 value "(1 :: nat) = 1"
-value "(\<le>)"
+(* value "(\<le>)" *)
 (* value "op \<le>" *)
 
 value "equal"
@@ -721,7 +721,7 @@ lemma tertium_non_datur:
   by blast
 *)
 
-value "10"
+value "10 :: nat"
 
 lemma "2 = (1 :: nat) + (1 :: nat)" using [[simp_trace_new mode=full]] by simp
 
@@ -813,10 +813,54 @@ proof -
       then have "2 * abs n \<le> abs m * abs n" by (simp add: mult_mono) (* NB Can't put "mult_mono" under using! *)
       also have "... = abs (m * n)" by (simp add: abs_mult) (* ... refers to the previous right-hand side *)
       also have "... = 1" using mn by simp
-      finally have "2 * abs n \<le> 1" . (* "." denotes ttrivial proof *)
+      finally have "2 * abs n \<le> 1" . (* "." denotes trivial proof *)
       thus "False" using nnonzero by auto
     qed
   thus "abs m = 1" using mnonzero by auto
 qed
+
+
+
+print_rules
+print_methods
+thm disjE
+print_statement exE
+print_statement allE
+print_statement disjE
+print_statement disjE[where Q = disjI1]
+print_statement conjE
+print_statement ccontr
+
+print_statement conjI
+print_statement disjI1
+print_statement nat.induct
+
+print_statement HOL.contrapos_nn
+print_statement HOL.contrapos_np
+print_statement HOL.contrapos_pn
+print_statement HOL.contrapos_pp
+
+thm notI ccontr classical
+print_statement notI
+print_statement notE
+print_statement ccontr
+print_statement classical
+
+thm asm_rl
+
+theorem quantifier_test: "∀x. A x ⟹ ∀x. B x ⟹ ∀x. A x ∧ B x"
+proof -
+  assume 1: "∀x. A(x)" and 2: "∀x. B(x)"
+  have "∀y. A y ∧ B y"
+  proof(rule allI)
+    fix y
+    from 1 have Ay: "A y" by (elim allE)
+    from 2 have By: "B y" by (elim allE)
+    from Ay By show "A y ∧ B y" by (rule conjI)
+  qed
+  then have "∀x. B x ⟹ ∀y. A y ∧ B y" by (rule asm_rl)
+  then show "∀x. A(x) ⟹ ∀x. B(x) ⟹ ∀x. A(x) ∧ B(x)" by (rule asm_rl)
+qed
+
 
 end
